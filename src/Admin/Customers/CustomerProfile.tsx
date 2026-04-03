@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../../lib/db';
 import { 
   User, Phone, Mail, MapPin, CreditCard, Calendar, 
-  History, Wallet, Gem, ShieldCheck, ChevronLeft, 
+  History, Wallet, Gem, ShieldCheck,
   Edit2, Trash2, Printer, ArrowLeft, Download, Plus, CheckCircle
 } from 'lucide-react';
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../../lib/db';
-import { Search, Plus, Trash2, Edit2, User, Phone, CreditCard, LayoutGrid, List, Eye, MapPin, Mail, ShieldCheck } from 'lucide-react';
+import { Search, Plus, Trash2, Edit2, User, Phone, LayoutGrid, List, Eye, Mail, ShieldCheck } from 'lucide-react';
 
 export function Customers() {
   const navigate = useNavigate();
