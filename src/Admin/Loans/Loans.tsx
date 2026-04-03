@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db } from '../../lib/db';
-import { Search, Plus, Trash2, IndianRupee, Calendar, User, Gem,Wallet, Camera, PlusCircle, CheckCircle, Clock, AlertCircle, CreditCard, X, Receipt } from 'lucide-react';
+import { Search, Plus, Trash2, IndianRupee, Calendar, User, Gem,Wallet, Camera, PlusCircle, CheckCircle, Clock, AlertCircle, CreditCard, X, Receipt, LayoutGrid, List } from 'lucide-react';
 
 export function Loans() {
   const [loans, setLoans] = useState<any[]>([]);
@@ -9,6 +9,7 @@ export function Loans() {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
   
   // New Loan Form State
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
@@ -195,6 +196,7 @@ export function Loans() {
 
   const filtered = loans.filter(l => 
     l.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    l.customerId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     l.id?.includes(searchTerm)
   );
 
@@ -215,8 +217,8 @@ export function Loans() {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-4 border-b border-gray-100 bg-gray-50/30">
-          <div className="relative max-w-sm">
+        <div className="p-4 border-b border-gray-100 bg-gray-50/30 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="relative w-full max-w-sm">
             <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input 
               type="text"
@@ -226,100 +228,203 @@ export function Loans() {
               className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm bg-white"
             />
           </div>
+
+          <div className="flex bg-white p-1 rounded-lg border border-gray-200 shadow-sm">
+            <button 
+              onClick={() => setViewMode('table')}
+              className={`p-2 rounded-md transition-all ${viewMode === 'table' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:bg-gray-50'}`}
+              title="Table View"
+            >
+              <List className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={() => setViewMode('card')}
+              className={`p-2 rounded-md transition-all ${viewMode === 'card' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:bg-gray-50'}`}
+              title="Card View"
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 text-gray-600 font-semibold border-b border-gray-200 uppercase text-[11px] tracking-wider">
-              <tr>
-                <th className="px-6 py-4">Loan Details</th>
-                <th className="px-6 py-4">Customer</th>
-                <th className="px-6 py-4">Pledged Gold</th>
-                <th className="px-6 py-4">Financials</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {filtered.length === 0 ? (
+        {viewMode === 'table' ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-gray-50 text-gray-600 font-semibold border-b border-gray-200 uppercase text-[11px] tracking-wider">
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400 font-bold uppercase tracking-widest">
-                    No active loan records found.
-                  </td>
+                  <th className="px-6 py-4">Loan Details</th>
+                  <th className="px-6 py-4">Customer</th>
+                  <th className="px-6 py-4">Pledged Gold</th>
+                  <th className="px-6 py-4">Financials</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
-              ) : (
-                filtered.map((l) => (
-                  <tr key={l.id} className="hover:bg-gray-50/80 transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="font-mono text-[10px] text-gray-400 mb-1 leading-none uppercase">#{l.id?.slice(-8).toUpperCase()}</div>
-                      <div className="flex items-center gap-2 text-xs text-gray-600 font-bold">
-                        <Calendar className="w-3 h-3 text-blue-500" />
-                        <span>{new Date(l.startDate).toLocaleDateString()}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="font-black text-gray-900 group-hover:text-blue-600 transition-colors">{l.customerName}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex -space-x-2 overflow-hidden mb-1">
-                        {l.goldItems?.slice(0, 3).map((item: any, idx: number) => (
-                          <div key={idx} className="w-7 h-7 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-500 shadow-sm overflow-hidden">
-                             {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : item.type[0]}
-                          </div>
-                        ))}
-                        {l.goldItems?.length > 3 && (
-                          <div className="w-7 h-7 rounded-full border-2 border-white bg-blue-50 flex items-center justify-center text-[8px] font-black text-blue-600 shadow-sm">
-                            +{l.goldItems.length - 3}
-                          </div>
-                        )}
-                      </div>
-                      <div className="text-[10px] text-gray-400 font-extrabold uppercase">
-                        {l.goldItems?.reduce((acc: number, i: any) => acc + (Number(i.weight) || 0), 0).toFixed(2)}g / {l.goldItems?.length} items
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center text-gray-900 font-black text-sm">
-                        <IndianRupee className="w-3.5 h-3.5 mr-0.5 text-gray-400" />
-                        {Number(l.loanAmount).toLocaleString()}
-                      </div>
-                      {l.balanceAmount !== undefined && (
-                        <div className={`text-[10px] font-bold mt-1 ${l.balanceAmount > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
-                           {l.balanceAmount > 0 ? `Unpaid Balance: ₹${l.balanceAmount.toLocaleString()}` : 'Settled Full'}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-tighter shadow-sm border ${
-                        l.status === 'Active' ? 'bg-blue-50 text-blue-700 border-blue-100' : 
-                        l.status === 'Overdue' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                      }`}>
-                         {l.status === 'Active' ? <Clock className="w-3 h-3" /> : 
-                          l.status === 'Overdue' ? <AlertCircle className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
-                         {l.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {l.status !== 'Closed' && (
-                          <button 
-                            onClick={() => { setSelectedLoan(l); setIsPaymentModalOpen(true); }}
-                            className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all border border-transparent hover:border-emerald-200 shadow-sm bg-white"
-                            title="Record Payment"
-                          >
-                             <Wallet className="w-4 h-4" />
-                          </button>
-                        )}
-                        <button onClick={() => deleteLoan(l.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center text-gray-400 font-bold uppercase tracking-widest">
+                      No active loan records found.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  filtered.map((l) => (
+                    <tr key={l.id} className="hover:bg-gray-50/80 transition-colors group">
+                      <td className="px-6 py-4">
+                        <div className="font-mono text-[10px] text-gray-400 mb-1 leading-none uppercase">#{l.id?.slice(-8).toUpperCase()}</div>
+                        <div className="flex items-center gap-2 text-xs text-gray-600 font-bold">
+                          <Calendar className="w-3 h-3 text-blue-500" />
+                          <span>{new Date(l.startDate).toLocaleDateString()}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="font-black text-gray-900 group-hover:text-blue-600 transition-colors">{l.customerName}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex -space-x-2 overflow-hidden mb-1">
+                          {l.goldItems?.slice(0, 3).map((item: any, idx: number) => (
+                            <div key={idx} className="w-7 h-7 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-500 shadow-sm overflow-hidden">
+                               {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : item.type[0]}
+                            </div>
+                          ))}
+                          {l.goldItems?.length > 3 && (
+                            <div className="w-7 h-7 rounded-full border-2 border-white bg-blue-50 flex items-center justify-center text-[8px] font-black text-blue-600 shadow-sm">
+                              +{l.goldItems.length - 3}
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-[10px] text-gray-400 font-extrabold uppercase">
+                          {l.goldItems?.reduce((acc: number, i: any) => acc + (Number(i.weight) || 0), 0).toFixed(2)}g / {l.goldItems?.length} items
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center text-gray-900 font-black text-sm">
+                          <IndianRupee className="w-3.5 h-3.5 mr-0.5 text-gray-400" />
+                          {Number(l.loanAmount).toLocaleString()}
+                        </div>
+                        {l.balanceAmount !== undefined && (
+                          <div className={`text-[10px] font-bold mt-1 ${l.balanceAmount > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                             {l.balanceAmount > 0 ? `Unpaid Balance: ₹${l.balanceAmount.toLocaleString()}` : 'Settled Full'}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-tighter shadow-sm border ${
+                          l.status === 'Active' ? 'bg-blue-50 text-blue-700 border-blue-100' : 
+                          l.status === 'Overdue' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                        }`}>
+                           {l.status === 'Active' ? <Clock className="w-3 h-3" /> : 
+                            l.status === 'Overdue' ? <AlertCircle className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
+                           {l.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {l.status !== 'Closed' && (
+                            <button 
+                              onClick={() => { setSelectedLoan(l); setIsPaymentModalOpen(true); }}
+                              className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all border border-transparent hover:border-emerald-200 shadow-sm bg-white"
+                              title="Record Payment"
+                            >
+                               <Wallet className="w-4 h-4" />
+                            </button>
+                          )}
+                          <button onClick={() => deleteLoan(l.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.length === 0 ? (
+               <div className="col-span-full py-20 text-center text-gray-400">
+                  <Receipt className="w-16 h-16 mx-auto mb-4 opacity-10" />
+                  <p className="text-lg font-medium">No active loan records found</p>
+               </div>
+            ) : (
+              filtered.map((l) => (
+                <div key={l.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group overflow-hidden flex flex-col">
+                  <div className="p-5 border-b border-gray-50 bg-gray-50/30 flex justify-between items-start">
+                    <div>
+                      <div className="font-mono text-[9px] text-gray-400 uppercase tracking-tighter leading-none mb-1">LOAN-#{l.id?.slice(-8).toUpperCase()}</div>
+                      <h3 className="font-black text-gray-900 group-hover:text-blue-600 transition-colors uppercase leading-none">{l.customerName}</h3>
+                    </div>
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border ${
+                      l.status === 'Active' ? 'bg-blue-50 text-blue-700 border-blue-100' : 
+                      l.status === 'Overdue' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                    }`}>
+                      {l.status}
+                    </span>
+                  </div>
+
+                  <div className="p-5 flex-1 space-y-4">
+                    <div className="flex justify-between items-end">
+                      <div>
+                        <span className="text-[10px] text-gray-400 font-bold uppercase block mb-1">Loan Amount</span>
+                        <div className="text-2xl font-black text-gray-900 flex items-center">
+                          <IndianRupee className="w-4 h-4 mr-0.5 text-gray-400" />
+                          {Number(l.loanAmount).toLocaleString()}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase block mb-1">Start Date</span>
+                        <div className="text-xs font-bold text-gray-600">{new Date(l.startDate).toLocaleDateString()}</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-50/50 rounded-xl p-3 border border-blue-50 space-y-2">
+                       <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest block">Pledged Assets</span>
+                       <div className="flex items-center gap-3">
+                          <div className="flex -space-x-2 overflow-hidden">
+                            {l.goldItems?.slice(0, 4).map((item: any, idx: number) => (
+                              <div key={idx} className="w-8 h-8 rounded-full border-2 border-white bg-white flex items-center justify-center shadow-sm overflow-hidden">
+                                {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : <Gem className="w-4 h-4 text-blue-300" />}
+                              </div>
+                            ))}
+                          </div>
+                          <div className="text-xs font-black text-blue-900">
+                             {l.goldItems?.reduce((acc: number, i: any) => acc + (Number(i.weight) || 0), 0).toFixed(2)}g <span className="text-[9px] text-blue-400">({l.goldItems?.length} items)</span>
+                          </div>
+                       </div>
+                    </div>
+
+                    {l.balanceAmount !== undefined && (
+                      <div className="flex justify-between items-center text-[11px] font-bold">
+                        <span className="text-gray-400">Unpaid Balance</span>
+                        <span className={l.balanceAmount > 0 ? 'text-amber-600' : 'text-emerald-600'}>
+                          ₹{l.balanceAmount.toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-4 bg-gray-50 border-t border-gray-100 flex gap-2">
+                    {l.status !== 'Closed' && (
+                      <button 
+                        onClick={() => { setSelectedLoan(l); setIsPaymentModalOpen(true); }}
+                        className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
+                      >
+                        <Wallet className="w-3.5 h-3.5" /> Record Payment
+                      </button>
+                    )}
+                    <button 
+                      onClick={() => deleteLoan(l.id)}
+                      className="p-2.5 rounded-xl bg-white border border-gray-200 text-gray-400 hover:text-red-500 transition-all shadow-sm"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
 
       {/* Payment Modal */}

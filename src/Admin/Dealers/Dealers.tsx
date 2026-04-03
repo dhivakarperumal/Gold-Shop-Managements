@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { db } from '../../lib/db';
-import { Search, Plus, Trash2, Home, User } from 'lucide-react';
+import { Search, Plus, Trash2, Home, User, LayoutGrid, List, Phone, MapPin } from 'lucide-react';
 
 export function Dealers() {
   const [dealers, setDealers] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
 
   const loadData = async () => {
     const data = await db.get('dealers');
@@ -60,58 +61,120 @@ export function Dealers() {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-4 border-b border-gray-100">
-          <div className="relative max-w-sm">
+        <div className="p-4 border-b border-gray-100 bg-gray-50/30 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="relative w-full max-w-sm">
             <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input 
               type="text"
               placeholder="Search by name or shop..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm"
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm bg-white"
             />
+          </div>
+
+          <div className="flex bg-white p-1 rounded-lg border border-gray-200 shadow-sm">
+            <button 
+              onClick={() => setViewMode('table')}
+              className={`p-2 rounded-md transition-all ${viewMode === 'table' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:bg-gray-50'}`}
+              title="Table View"
+            >
+              <List className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={() => setViewMode('card')}
+              className={`p-2 rounded-md transition-all ${viewMode === 'card' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:bg-gray-50'}`}
+              title="Card View"
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 text-gray-600 font-semibold border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-4">Dealer/Shop</th>
-                <th className="px-6 py-4">Contact</th>
-                <th className="px-6 py-4">Address</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {filtered.length === 0 ? (
+        {viewMode === 'table' ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-gray-50 text-gray-600 font-semibold border-b border-gray-200 uppercase text-[11px] tracking-wider">
                 <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
-                    No dealers found. Click 'Add Dealer' to create one.
-                  </td>
+                  <th className="px-6 py-4">Dealer/Shop</th>
+                  <th className="px-6 py-4">Contact</th>
+                  <th className="px-6 py-4">Address</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
-              ) : (
-                filtered.map((d) => (
-                  <tr key={d.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900">{d.name}</div>
-                      <div className="text-xs text-[#1b88f3] font-medium">{d.shopName}</div>
-                    </td>
-                    <td className="px-6 py-4 text-gray-600 font-mono text-xs">{d.mobile}</td>
-                    <td className="px-6 py-4 text-gray-600">
-                      <div className="text-xs truncate max-w-xs">{d.address}</div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button onClick={() => deleteDealer(d.id)} className="text-red-500 hover:text-red-700 p-1">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-12 text-center text-gray-400 uppercase font-black text-[10px] tracking-widest">
+                      No dealers found. Click 'Add Dealer' to create one.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  filtered.map((d) => (
+                    <tr key={d.id} className="hover:bg-gray-50/80 transition-colors group">
+                      <td className="px-6 py-4">
+                        <div className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{d.name}</div>
+                        <div className="text-[11px] text-blue-500 font-black uppercase tracking-tighter">{d.shopName}</div>
+                      </td>
+                      <td className="px-6 py-4 text-gray-600 font-mono text-xs font-bold">{d.mobile}</td>
+                      <td className="px-6 py-4 text-gray-400">
+                        <div className="text-[10px] truncate max-w-xs uppercase font-extrabold">{d.address}</div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button onClick={() => deleteDealer(d.id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Delete">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.length === 0 ? (
+               <div className="col-span-full py-20 text-center text-gray-400">
+                  <Home className="w-16 h-16 mx-auto mb-4 opacity-10" />
+                  <p className="text-lg font-black uppercase tracking-widest text-[10px]">No Registered Dealers found</p>
+               </div>
+            ) : (
+              filtered.map((d) => (
+                <div key={d.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group overflow-hidden flex flex-col">
+                  <div className="p-5 border-b border-gray-50 bg-gray-50/30 flex items-center justify-between">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500 shadow-inner">
+                      <Home className="w-5 h-5" />
+                    </div>
+                    <button 
+                      onClick={() => deleteDealer(d.id)}
+                      className="p-2 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="p-5 space-y-4">
+                    <div>
+                      <h3 className="font-black text-gray-900 group-hover:text-blue-600 transition-colors uppercase leading-none">{d.name}</h3>
+                      <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">{d.shopName}</p>
+                    </div>
+
+                    <div className="space-y-2">
+                       <div className="flex items-center gap-3 text-xs text-gray-600 font-bold border-b border-gray-50 pb-2">
+                          <Phone className="w-3.5 h-3.5 text-blue-400" />
+                          <span>{d.mobile}</span>
+                       </div>
+                       <div className="flex items-start gap-3 text-[10px] text-gray-400 font-black uppercase tracking-tighter leading-relaxed">
+                          <MapPin className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
+                          <span>{d.address}</span>
+                       </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
 
       {isModalOpen && (
