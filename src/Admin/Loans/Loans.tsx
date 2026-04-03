@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../../lib/db';
-import { Search, Plus, Trash2, IndianRupee, Calendar, User, Gem, Wallet, CheckCircle, Clock, AlertCircle, Receipt, LayoutGrid, List, Info } from 'lucide-react';
+import { Search, Plus, Trash2, IndianRupee, Calendar, Gem, Wallet, CheckCircle, Clock, AlertCircle, Receipt, LayoutGrid, List } from 'lucide-react';
 
 export function Loans() {
   const navigate = useNavigate();

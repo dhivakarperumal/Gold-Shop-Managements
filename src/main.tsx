@@ -10,6 +10,7 @@ import { Register } from "./Auth/Register";
 import { Dashboard } from "./Admin/Dashboard/Dashboard";
 import { Customers } from "./Admin/Customers/Customers";
 import { CustomerForm } from "./Admin/Customers/CustomerForm";
+import { CustomerProfile } from "./Admin/Customers/CustomerProfile";
 import { Loans } from "./Admin/Loans/Loans";
 import { LoanForm } from "./Admin/Loans/LoanForm";
 import { Payments } from "./Admin/Payments/Payments";
@@ -42,6 +43,7 @@ const router = createBrowserRouter([
       { index: true, element: <Dashboard /> },
       { path: "customers", element: <Customers /> },
       { path: "customers/new", element: <CustomerForm /> },
+      { path: "customers/view/:id", element: <CustomerProfile /> },
       { path: "customers/edit/:id", element: <CustomerForm /> },
       { path: "loans", element: <Loans /> },
       { path: "loans/new", element: <LoanForm /> },
