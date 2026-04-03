@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Coins, Briefcase, BarChart3, X } from 'lucide-react';
+import { LayoutDashboard, Users, Coins, Briefcase, BarChart3, X, Wallet } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 interface SidebarProps {
@@ -14,6 +14,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard, roles: ['admin', 'user'], end: true },
     { name: 'Customers', path: '/admin/customers', icon: Users, roles: ['admin'], end: true },
     { name: 'Loans', path: '/admin/loans', icon: Coins, roles: ['admin', 'user'], end: true },
+    { name: 'Payments', path: '/admin/payments', icon: Wallet, roles: ['admin', 'user'], end: true },
     { name: 'Dealers', path: '/admin/dealers', icon: Briefcase, roles: ['admin'], end: true },
     { name: 'Reports', path: '/admin/reports', icon: BarChart3, roles: ['admin'], end: true }
   ];
