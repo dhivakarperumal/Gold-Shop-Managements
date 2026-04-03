@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { db } from '../lib/db';
+import { db } from '../../lib/db';
 import { Search, Plus, Trash2 } from 'lucide-react';
 
 export function Customers() {

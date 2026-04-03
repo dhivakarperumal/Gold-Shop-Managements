@@ -27,11 +27,19 @@ export function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, form.email, form.password);
+      const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
       
-      // The onAuthStateChanged in AuthContext will handle the user role retrieval.
+      // Fetch user role directly after login
+      const userDoc = await getDoc(doc(dbFirestore, "users", userCredential.user.uid));
+      const userData = userDoc.data();
+      
       toast.success("Welcome back!");
-      navigate("/dashboard");
+
+      if (userData?.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
     } catch (error: any) {
       console.error("Login Error:", error);
       toast.error(error.message || "Login failed. Check your credentials.");
@@ -49,7 +57,7 @@ export function Login() {
       const userDoc = await getDoc(userDocRef);
 
       if (!userDoc.exists()) {
-        await setDoc(userDocRef, {
+        const newUser = {
           username: user.displayName || user.email?.split('@')[0] || "Google User",
           email: user.email,
           phone: user.phoneNumber || "",
@@ -59,11 +67,21 @@ export function Login() {
           updatedAt: serverTimestamp(),
           employeeId: `EMP${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
           uid: user.uid
-        });
+        };
+        await setDoc(userDocRef, newUser);
+        toast.success("Account created and logged in!");
+        navigate("/");
+        return;
       }
-      
+
+      const userData = userDoc.data();
       toast.success("Google Login Successful!");
-      navigate("/dashboard");
+      
+      if (userData?.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
     } catch (error: any) {
       console.error("Google Login Error:", error);
       toast.error(error.message || "Google Login Failed");

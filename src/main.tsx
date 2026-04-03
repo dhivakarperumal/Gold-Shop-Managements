@@ -2,13 +2,16 @@ import React, { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App";
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { MainLayout } from "./components/Layout/MainLayout";
 import { Login } from "./Auth/Login";
 import { Register } from "./Auth/Register";
 import { Dashboard } from "./Admin/Dashboard/Dashboard";
-import { Customers } from "./Admin/Customers";
+import { Customers } from "./Admin/Customers/Customers";
+import { Loans } from "./Admin/Loans/Loans";
+import { Dealers } from "./Admin/Dealers/Dealers";
+import { Reports } from "./Admin/Reports/Reports";
 import { Home } from "./pages/Home";
 import Loader from "./components/CommonComponents/Loader";
 import { Toaster } from "./components/CommonComponents/Toaster";
@@ -34,7 +37,10 @@ const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <Dashboard /> },
-      { path: "customers",element: <Customers /> }
+      { path: "customers",element: <Customers /> },
+      { path: "loans", element: <Loans /> },
+      { path: "dealers", element: <Dealers /> },
+      { path: "reports", element: <Reports /> }
     ]
   },
 
