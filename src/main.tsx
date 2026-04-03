@@ -11,6 +11,7 @@ import { Dashboard } from "./Admin/Dashboard/Dashboard";
 import { Customers } from "./Admin/Customers/Customers";
 import { CustomerForm } from "./Admin/Customers/CustomerForm";
 import { Loans } from "./Admin/Loans/Loans";
+import { LoanForm } from "./Admin/Loans/LoanForm";
 import { Payments } from "./Admin/Payments/Payments";
 import { Dealers } from "./Admin/Dealers/Dealers";
 import { Reports } from "./Admin/Reports/Reports";
@@ -43,6 +44,7 @@ const router = createBrowserRouter([
       { path: "customers/new", element: <CustomerForm /> },
       { path: "customers/edit/:id", element: <CustomerForm /> },
       { path: "loans", element: <Loans /> },
+      { path: "loans/new", element: <LoanForm /> },
       { path: "payments", element: <Payments /> },
       { path: "dealers", element: <Dealers /> },
       { path: "reports", element: <Reports /> }

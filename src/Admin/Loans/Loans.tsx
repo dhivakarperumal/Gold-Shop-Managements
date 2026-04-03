@@ -1,24 +1,17 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { db } from '../../lib/db';
-import { Search, Plus, Trash2, IndianRupee, Calendar, User, Gem,Wallet, Camera, PlusCircle, CheckCircle, Clock, AlertCircle, CreditCard, X, Receipt, LayoutGrid, List } from 'lucide-react';
+import { Search, Plus, Trash2, IndianRupee, Calendar, User, Gem, Wallet, CheckCircle, Clock, AlertCircle, Receipt, LayoutGrid, List, Info } from 'lucide-react';
 
 export function Loans() {
+  const navigate = useNavigate();
   const [loans, setLoans] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
   
-  // New Loan Form State
-  const [selectedCustomerId, setSelectedCustomerId] = useState('');
-  const [goldItems, setGoldItems] = useState<any[]>([]);
-  const [loanAmount, setLoanAmount] = useState<number>(0);
-  const [interestRate, setInterestRate] = useState<number>(2.0);
-  const [duration, setDuration] = useState<number>(12);
-  const [marketRate] = useState<number>(6500); // Default market rate per gram (22K)
-
   // Payment Form State
   const [paymentAmount, setPaymentAmount] = useState<number>(0);
   const [paymentType, setPaymentType] = useState('Interest');
@@ -34,84 +27,6 @@ export function Loans() {
     loadData();
   }, []);
 
-  const addGoldItem = () => {
-    setGoldItems([...goldItems, { 
-      id: Date.now(),
-      type: 'Chain', 
-      weight: '', 
-      purity: '22K', 
-      valuation: 0,
-      image: '' 
-    }]);
-  };
-
-  const updateGoldItem = (index: number, field: string, value: any) => {
-    const updated = [...goldItems];
-    updated[index][field] = value;
-    
-    // Auto-calculate valuation
-    if (field === 'weight' || field === 'purity') {
-      const weight = Number(updated[index].weight) || 0;
-      const purityMult = updated[index].purity === '24K' ? 1 : 0.92;
-      updated[index].valuation = Math.round(weight * marketRate * purityMult);
-    }
-    
-    setGoldItems(updated);
-  };
-
-  const handlePhotoUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const updated = [...goldItems];
-        updated[index].image = reader.result as string;
-        setGoldItems(updated);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const totalValuation = goldItems.reduce((acc, item) => acc + (Number(item.valuation) || 0), 0);
-  const maxLoanPossible = Math.round(totalValuation * 0.75);
-
-  const handleAddSubmit = async (e: any) => {
-    e.preventDefault();
-    const customer = customers.find(c => c.id === selectedCustomerId);
-
-    const newLoan = {
-      customerId: selectedCustomerId,
-      customerName: customer?.name || 'Unknown',
-      goldItems,
-      totalValuation,
-      loanAmount: Number(loanAmount),
-      balanceAmount: Number(loanAmount),
-      interestRate: Number(interestRate),
-      duration: Number(duration),
-      startDate: new Date().toISOString(),
-      dueDate: new Date(Date.now() + duration * 30 * 24 * 60 * 60 * 1000).toISOString(),
-      status: 'Active',
-      paidAmount: 0,
-      interestPaid: 0,
-      totalPayableWeight: Math.round(loanAmount + (loanAmount * (interestRate/100) * duration)),
-      createdAt: new Date().toISOString()
-    };
-
-    await db.add('loans', newLoan);
-    
-    // Update customer active balance
-    if (customer) {
-      const currentActive = Number(customer.amountActive || 0);
-      await db.update('customers', selectedCustomerId, {
-        amountActive: currentActive + Number(loanAmount)
-      });
-    }
-
-    setIsModalOpen(false);
-    resetForm();
-    loadData();
-  };
-
   const handlePaymentSubmit = async (e: any) => {
     e.preventDefault();
     if (!selectedLoan) return;
@@ -122,7 +37,7 @@ export function Loans() {
     let newPrincipalPaid = Number(selectedLoan.paidAmount) || 0;
     let newStatus = selectedLoan.status;
 
-    if (paymentType === 'Settlement') {
+    if (paymentType === 'Full') {
       newBalance = 0;
       newPrincipalPaid = Number(selectedLoan.loanAmount);
       newStatus = 'Closed';
@@ -171,12 +86,6 @@ export function Loans() {
     loadData();
   };
 
-  const resetForm = () => {
-    setSelectedCustomerId('');
-    setGoldItems([]);
-    setLoanAmount(0);
-  };
-
   const deleteLoan = async (id: string) => {
     if(confirm('Are you sure you want to delete this loan record?')) {
       const loan = loans.find(l => l.id === id);
@@ -204,42 +113,42 @@ export function Loans() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Loan & Gold Management</h1>
-          <p className="text-sm text-gray-500 mt-1">Pledge gold items and manage active loans.</p>
+          <h1 className="text-2xl font-black text-gray-900 tracking-tight uppercase">Advanced Loan Manager</h1>
+          <p className="text-xs text-gray-500 mt-1 uppercase font-bold tracking-widest">Multi-item pledging & interest tracking.</p>
         </div>
         <button 
-          onClick={() => setIsModalOpen(true)}
-          className="bg-[#1b88f3] hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-black text-xs shadow-lg flex items-center gap-2 transition-all uppercase tracking-widest hover:scale-105 active:scale-95"
+          onClick={() => navigate('/admin/loans/new')}
+          className="bg-[#1b88f3] hover:bg-blue-600 text-white px-6 py-3 rounded-2xl font-black text-[11px] shadow-lg flex items-center gap-2 transition-all uppercase tracking-widest hover:scale-105 active:scale-95"
         >
           <Plus className="w-5 h-5" />
           Create New Pledge
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-4 border-b border-gray-100 bg-gray-50/30 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="p-5 border-b border-gray-100 bg-gray-50/30 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="relative w-full max-w-sm">
-            <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
             <input 
               type="text"
-              placeholder="Search by ID or Customer..."
+              placeholder="Search by ID, Customer Name or CUST-ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm bg-white"
+              className="w-full pl-12 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:ring-0 focus:border-blue-500 outline-none transition-all text-sm font-bold bg-white"
             />
           </div>
 
-          <div className="flex bg-white p-1 rounded-lg border border-gray-200 shadow-sm">
+          <div className="flex bg-white p-1 rounded-xl border border-gray-200 shadow-sm">
             <button 
               onClick={() => setViewMode('table')}
-              className={`p-2 rounded-md transition-all ${viewMode === 'table' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:bg-gray-50'}`}
+              className={`p-2 rounded-lg transition-all ${viewMode === 'table' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:bg-gray-50'}`}
               title="Table View"
             >
               <List className="w-4 h-4" />
             </button>
             <button 
               onClick={() => setViewMode('card')}
-              className={`p-2 rounded-md transition-all ${viewMode === 'card' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:bg-gray-50'}`}
+              className={`p-2 rounded-lg transition-all ${viewMode === 'card' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:bg-gray-50'}`}
               title="Card View"
             >
               <LayoutGrid className="w-4 h-4" />
@@ -250,66 +159,62 @@ export function Loans() {
         {viewMode === 'table' ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-gray-50 text-gray-600 font-semibold border-b border-gray-200 uppercase text-[11px] tracking-wider">
+              <thead className="bg-gray-50 text-gray-400 font-black border-b border-gray-100 uppercase text-[10px] tracking-[0.15em]">
                 <tr>
-                  <th className="px-6 py-4">Loan Details</th>
-                  <th className="px-6 py-4">Customer</th>
-                  <th className="px-6 py-4">Pledged Gold</th>
-                  <th className="px-6 py-4">Financials</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
+                  <th className="px-6 py-5">Loan Ref / Date</th>
+                  <th className="px-6 py-5">Customer Profile</th>
+                  <th className="px-6 py-5">Pledged Objects</th>
+                  <th className="px-6 py-5">Financial Details</th>
+                  <th className="px-6 py-5">Workflow</th>
+                  <th className="px-6 py-5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 italic font-medium">
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-gray-400 font-bold uppercase tracking-widest">
-                      No active loan records found.
+                    <td colSpan={6} className="px-6 py-20 text-center text-gray-400 font-black uppercase tracking-widest text-[11px]">
+                      No active loan records detected in system.
                     </td>
                   </tr>
                 ) : (
                   filtered.map((l) => (
-                    <tr key={l.id} className="hover:bg-gray-50/80 transition-colors group">
-                      <td className="px-6 py-4">
-                        <div className="font-mono text-[10px] text-gray-400 mb-1 leading-none uppercase">#{l.id?.slice(-8).toUpperCase()}</div>
-                        <div className="flex items-center gap-2 text-xs text-gray-600 font-bold">
-                          <Calendar className="w-3 h-3 text-blue-500" />
-                          <span>{new Date(l.startDate).toLocaleDateString()}</span>
+                    <tr key={l.id} className="hover:bg-gray-50/80 transition-colors group not-italic">
+                      <td className="px-6 py-5">
+                        <div className="font-mono text-[10px] font-black text-blue-500 mb-1 leading-none uppercase">#{l.id?.slice(-8).toUpperCase()}</div>
+                        <div className="flex items-center gap-2 text-[10px] text-gray-500 font-bold uppercase tracking-tighter">
+                          <Calendar className="w-3 h-3 text-gray-400" />
+                          <span>{new Date(l.startDate || l.loanDate).toLocaleDateString()}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="font-black text-gray-900 group-hover:text-blue-600 transition-colors">{l.customerName}</div>
+                      <td className="px-6 py-5">
+                        <div className="font-black text-gray-900 group-hover:text-blue-600 transition-colors uppercase text-xs">{l.customerName}</div>
+                        <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">{l.customerId || 'CUST-XXXX'}</div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex -space-x-2 overflow-hidden mb-1">
-                          {l.goldItems?.slice(0, 3).map((item: any, idx: number) => (
-                            <div key={idx} className="w-7 h-7 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-500 shadow-sm overflow-hidden">
-                               {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : item.type[0]}
-                            </div>
-                          ))}
-                          {l.goldItems?.length > 3 && (
-                            <div className="w-7 h-7 rounded-full border-2 border-white bg-blue-50 flex items-center justify-center text-[8px] font-black text-blue-600 shadow-sm">
-                              +{l.goldItems.length - 3}
-                            </div>
-                          )}
-                        </div>
-                        <div className="text-[10px] text-gray-400 font-extrabold uppercase">
-                          {l.goldItems?.reduce((acc: number, i: any) => acc + (Number(i.weight) || 0), 0).toFixed(2)}g / {l.goldItems?.length} items
+                      <td className="px-6 py-5">
+                        <div className="flex items-center gap-3">
+                           <div className="flex -space-x-2 overflow-hidden">
+                              {l.goldItems?.slice(0, 3).map((item: any, idx: number) => (
+                                <div key={idx} className="w-8 h-8 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[10px] font-black text-gray-400 shadow-sm overflow-hidden">
+                                   {item.photo || item.image ? <img src={item.photo || item.image} className="w-full h-full object-cover" /> : <Gem className="w-4 h-4 opacity-30" />}
+                                </div>
+                              ))}
+                           </div>
+                           <div className="text-[10px] text-gray-400 font-black uppercase tracking-tighter">
+                              {l.goldItems?.length} items ({l.goldItems?.reduce((acc: number, i: any) => acc + (Number(i.weight) || 0), 0).toFixed(2)}g)
+                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-5">
                         <div className="flex items-center text-gray-900 font-black text-sm">
                           <IndianRupee className="w-3.5 h-3.5 mr-0.5 text-gray-400" />
                           {Number(l.loanAmount).toLocaleString()}
                         </div>
-                        {l.balanceAmount !== undefined && (
-                          <div className={`text-[10px] font-bold mt-1 ${l.balanceAmount > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
-                             {l.balanceAmount > 0 ? `Unpaid Balance: ₹${l.balanceAmount.toLocaleString()}` : 'Settled Full'}
-                          </div>
-                        )}
+                        <div className="text-[9px] font-black uppercase tracking-widest text-amber-600 mt-1">
+                           Rate: {l.interestRate}% ({l.interestType || 'Simple'})
+                        </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-tighter shadow-sm border ${
+                      <td className="px-6 py-5">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm ${
                           l.status === 'Active' ? 'bg-blue-50 text-blue-700 border-blue-100' : 
                           l.status === 'Overdue' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'
                         }`}>
@@ -318,18 +223,18 @@ export function Loans() {
                            {l.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-6 py-5 text-right">
                         <div className="flex items-center justify-end gap-2">
                           {l.status !== 'Closed' && (
                             <button 
                               onClick={() => { setSelectedLoan(l); setIsPaymentModalOpen(true); }}
-                              className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all border border-transparent hover:border-emerald-200 shadow-sm bg-white"
-                              title="Record Payment"
+                              className="p-2.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-xl transition-all border border-emerald-100 shadow-sm"
+                              title="Record Repayment"
                             >
                                <Wallet className="w-4 h-4" />
                             </button>
                           )}
-                          <button onClick={() => deleteLoan(l.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                          <button onClick={() => deleteLoan(l.id)} className="p-2.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all border border-transparent">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -345,17 +250,17 @@ export function Loans() {
             {filtered.length === 0 ? (
                <div className="col-span-full py-20 text-center text-gray-400">
                   <Receipt className="w-16 h-16 mx-auto mb-4 opacity-10" />
-                  <p className="text-lg font-medium">No active loan records found</p>
+                  <p className="text-sm font-black uppercase tracking-widest">No active system records detect</p>
                </div>
             ) : (
               filtered.map((l) => (
-                <div key={l.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group overflow-hidden flex flex-col">
-                  <div className="p-5 border-b border-gray-50 bg-gray-50/30 flex justify-between items-start">
+                <div key={l.id} className="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all group overflow-hidden flex flex-col">
+                  <div className="p-5 border-b border-gray-50 bg-gray-50/50 flex justify-between items-start">
                     <div>
-                      <div className="font-mono text-[9px] text-gray-400 uppercase tracking-tighter leading-none mb-1">LOAN-#{l.id?.slice(-8).toUpperCase()}</div>
-                      <h3 className="font-black text-gray-900 group-hover:text-blue-600 transition-colors uppercase leading-none">{l.customerName}</h3>
+                      <div className="font-mono text-[9px] text-blue-500 font-black uppercase tracking-tighter leading-none mb-1">REF: #{l.id?.slice(-8).toUpperCase()}</div>
+                      <h3 className="font-black text-gray-900 group-hover:text-blue-600 transition-colors uppercase text-xs leading-none">{l.customerName}</h3>
                     </div>
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border ${
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${
                       l.status === 'Active' ? 'bg-blue-50 text-blue-700 border-blue-100' : 
                       l.status === 'Overdue' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'
                     }`}>
@@ -363,59 +268,62 @@ export function Loans() {
                     </span>
                   </div>
 
-                  <div className="p-5 flex-1 space-y-4">
+                  <div className="p-6 flex-1 space-y-5">
                     <div className="flex justify-between items-end">
                       <div>
-                        <span className="text-[10px] text-gray-400 font-bold uppercase block mb-1">Loan Amount</span>
-                        <div className="text-2xl font-black text-gray-900 flex items-center">
+                        <span className="text-[9px] text-gray-400 font-black uppercase tracking-widest block mb-1">Principal Value</span>
+                        <div className="text-2xl font-black text-gray-900 flex items-center tracking-tighter">
                           <IndianRupee className="w-4 h-4 mr-0.5 text-gray-400" />
                           {Number(l.loanAmount).toLocaleString()}
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="text-[10px] text-gray-400 font-bold uppercase block mb-1">Start Date</span>
-                        <div className="text-xs font-bold text-gray-600">{new Date(l.startDate).toLocaleDateString()}</div>
+                        <span className="text-[9px] text-gray-400 font-black uppercase tracking-widest block mb-1 font-mono">{l.customerId || 'CUST-XXXX'}</span>
+                        <div className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
+                          @ {l.interestRate}% ({l.interestType || 'Simple'})
+                        </div>
                       </div>
                     </div>
 
-                    <div className="bg-blue-50/50 rounded-xl p-3 border border-blue-50 space-y-2">
-                       <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest block">Pledged Assets</span>
-                       <div className="flex items-center gap-3">
+                    <div className="bg-blue-50/30 rounded-2xl p-4 border border-blue-50/50 space-y-3">
+                       <span className="text-[8px] font-black text-blue-400 uppercase tracking-[0.2em] block">Asset Information</span>
+                       <div className="flex items-center justify-between">
                           <div className="flex -space-x-2 overflow-hidden">
                             {l.goldItems?.slice(0, 4).map((item: any, idx: number) => (
-                              <div key={idx} className="w-8 h-8 rounded-full border-2 border-white bg-white flex items-center justify-center shadow-sm overflow-hidden">
-                                {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : <Gem className="w-4 h-4 text-blue-300" />}
+                              <div key={idx} className="w-9 h-9 rounded-xl border-2 border-white bg-white flex items-center justify-center shadow-sm overflow-hidden">
+                                {item.photo || item.image ? <img src={item.photo || item.image} className="w-full h-full object-cover" /> : <Gem className="w-4 h-4 text-blue-200" />}
                               </div>
                             ))}
                           </div>
-                          <div className="text-xs font-black text-blue-900">
-                             {l.goldItems?.reduce((acc: number, i: any) => acc + (Number(i.weight) || 0), 0).toFixed(2)}g <span className="text-[9px] text-blue-400">({l.goldItems?.length} items)</span>
+                          <div className="text-right">
+                             <div className="text-xs font-black text-blue-900">{l.goldItems?.reduce((acc: number, i: any) => acc + (Number(i.weight) || 0), 0).toFixed(2)}g</div>
+                             <div className="text-[8px] text-blue-400 font-bold uppercase">{l.goldItems?.length} Pledged Items</div>
                           </div>
                        </div>
                     </div>
 
                     {l.balanceAmount !== undefined && (
-                      <div className="flex justify-between items-center text-[11px] font-bold">
-                        <span className="text-gray-400">Unpaid Balance</span>
-                        <span className={l.balanceAmount > 0 ? 'text-amber-600' : 'text-emerald-600'}>
+                      <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                        <span className="text-gray-400">Repayment Balance</span>
+                        <span className={l.balanceAmount > 0 ? 'text-amber-600 italic' : 'text-emerald-600'}>
                           ₹{l.balanceAmount.toLocaleString()}
                         </span>
                       </div>
                     )}
                   </div>
 
-                  <div className="p-4 bg-gray-50 border-t border-gray-100 flex gap-2">
+                  <div className="p-5 bg-gray-50/50 border-t border-gray-50 flex gap-3">
                     {l.status !== 'Closed' && (
                       <button 
                         onClick={() => { setSelectedLoan(l); setIsPaymentModalOpen(true); }}
-                        className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
+                        className="flex-1 py-3.5 rounded-2xl bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
                       >
-                        <Wallet className="w-3.5 h-3.5" /> Record Payment
+                        <Wallet className="w-4 h-4" /> Collect Redemption
                       </button>
                     )}
                     <button 
                       onClick={() => deleteLoan(l.id)}
-                      className="p-2.5 rounded-xl bg-white border border-gray-200 text-gray-400 hover:text-red-500 transition-all shadow-sm"
+                      className="p-3.5 rounded-2xl bg-white border border-gray-100 text-gray-300 hover:text-red-500 transition-all shadow-sm"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -427,72 +335,83 @@ export function Loans() {
         )}
       </div>
 
-      {/* Payment Modal */}
+      {/* Repayment Modal - Advanced Flow */}
       {isPaymentModalOpen && selectedLoan && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-150">
+          <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
              <div className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
                 <div>
-                   <h2 className="text-xl font-black text-gray-900 tracking-tighter">COLLECT PAYMENT</h2>
-                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Transaction Ref: {selectedLoan.id?.slice(-8).toUpperCase()}</p>
+                   <h2 className="text-xl font-black text-gray-900 tracking-tighter uppercase">Repayment Entry</h2>
+                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Receipt Ref: #{selectedLoan.id?.slice(-8).toUpperCase()}</p>
                 </div>
-                <button onClick={() => setIsPaymentModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-2 text-2xl">&times;</button>
+                <button onClick={() => setIsPaymentModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-2 text-3xl font-light">&times;</button>
              </div>
              
              <form onSubmit={handlePaymentSubmit} className="p-8 space-y-8">
-                <div className="space-y-4">
-                   <div className="flex justify-between p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
+                <div className="space-y-5">
+                   <div className="flex justify-between p-5 bg-blue-50/50 rounded-3xl border border-blue-100/50">
                       <div>
-                         <span className="text-[10px] font-bold text-blue-400 uppercase block mb-1">Customer</span>
-                         <span className="text-sm font-black text-blue-900">{selectedLoan.customerName}</span>
+                         <span className="text-[10px] font-black text-blue-400 uppercase block mb-1">Customer Profile</span>
+                         <span className="text-xs font-black text-blue-900 uppercase">{selectedLoan.customerName}</span>
                       </div>
                       <div className="text-right">
-                         <span className="text-[10px] font-bold text-blue-400 uppercase block mb-1">Current Balance</span>
-                         <span className="text-sm font-black text-blue-900">₹{(selectedLoan.balanceAmount || selectedLoan.loanAmount).toLocaleString()}</span>
+                         <span className="text-[10px] font-black text-blue-400 uppercase block mb-1">Open Balance</span>
+                         <span className="text-xs font-black text-blue-900">₹{(selectedLoan.balanceAmount || selectedLoan.loanAmount).toLocaleString()}</span>
                       </div>
                    </div>
 
+                   <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100 mb-2">
+                       <div className="flex items-center gap-2 text-amber-700 mb-1">
+                          <Clock className="w-3 h-3" />
+                          <span className="text-[9px] font-black uppercase tracking-widest">Model: {selectedLoan.interestType || 'Simple'}</span>
+                       </div>
+                       <p className="text-[10px] font-bold text-amber-900/60 uppercase">Applied Rate: {selectedLoan.interestRate}% Monthly</p>
+                   </div>
+
                    <div>
-                      <label className="block text-[11px] font-black text-gray-400 uppercase mb-3 px-1">Payment Category</label>
-                      <div className="grid grid-cols-3 gap-2">
-                         {['Interest', 'Partial', 'Settlement'].map(type => (
+                      <label className="block text-[10px] font-black text-gray-400 uppercase mb-3 px-1 tracking-widest">Choose Redemption Type</label>
+                      <div className="grid grid-cols-2 gap-3">
+                         {['Interest Only', 'Partial Payment', 'Full Settlement'].map(type => (
                            <button 
                             key={type}
                             type="button"
                             onClick={() => {
-                              setPaymentType(type);
-                              if (type === 'Settlement') setPaymentAmount(selectedLoan.balanceAmount || selectedLoan.loanAmount);
+                              const base = type.split(' ')[0];
+                              setPaymentType(base);
+                              if (type === 'Full Settlement') {
+                                setPaymentAmount(selectedLoan.balanceAmount || selectedLoan.loanAmount);
+                              }
                             }}
-                            className={`py-3 rounded-xl text-[10px] font-black uppercase transition-all border-2 ${
-                              paymentType === type ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white text-gray-500 border-gray-100 hover:border-blue-200'
+                            className={`py-4 rounded-2xl text-[10px] font-black uppercase transition-all border-2 ${
+                              (type.startsWith(paymentType) && paymentType !== '') ? 'bg-blue-600 text-white border-blue-600 shadow-xl scale-105' : 'bg-gray-50/50 text-gray-500 border-gray-100 hover:border-blue-200'
                             }`}
                            >
-                              {type}
+                               {type}
                            </button>
                          ))}
                       </div>
                    </div>
 
                    <div>
-                      <label className="block text-[11px] font-black text-gray-400 uppercase mb-3 px-1">Amount to Collect</label>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase mb-3 px-1 tracking-widest">Collection Amount (₹)</label>
                       <div className="relative">
-                        <IndianRupee className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500" />
+                        <IndianRupee className="w-5 h-5 absolute left-5 top-1/2 -translate-y-1/2 text-emerald-500" />
                         <input 
                           required 
                           type="number" 
                           value={paymentAmount}
                           onChange={(e) => setPaymentAmount(Number(e.target.value))}
-                          disabled={paymentType === 'Settlement'}
-                          className="w-full pl-12 pr-4 py-4 border-2 border-gray-100 rounded-2xl focus:border-emerald-500 outline-none text-2xl font-black text-gray-900 shadow-inner bg-gray-50 transition-all"
+                          disabled={paymentType === 'Full'}
+                          className="w-full pl-14 pr-4 py-5 border-2 border-gray-100 rounded-3xl focus:border-emerald-500 outline-none text-2xl font-black text-gray-900 shadow-inner bg-gray-50/50 transition-all font-mono"
                         />
                       </div>
                    </div>
                 </div>
 
-                <div className="pt-6 border-t border-gray-50 flex gap-4">
-                   <button type="button" onClick={() => setIsPaymentModalOpen(false)} className="flex-1 py-4 text-xs font-black text-gray-400 uppercase hover:bg-gray-50 rounded-2xl transition-all">Cancel</button>
-                   <button type="submit" className="flex-[2] py-4 bg-emerald-600 text-white text-xs font-black uppercase rounded-2xl shadow-[0_10px_20px_rgba(5,150,105,0.3)] hover:bg-emerald-700 transition-all flex items-center justify-center gap-2">
-                     <CheckCircle className="w-4 h-4" /> Confirm Receipt
+                <div className="pt-8 border-t border-gray-100 flex gap-4">
+                   <button type="button" onClick={() => setIsPaymentModalOpen(false)} className="flex-1 py-4 text-[10px] font-black text-gray-400 uppercase hover:bg-gray-50 rounded-2xl transition-all tracking-widest">Discard</button>
+                   <button type="submit" className="flex-[2] py-4 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-[0_12px_24px_rgba(5,150,105,0.3)] hover:bg-emerald-700 transition-all flex items-center justify-center gap-2">
+                     <CheckCircle className="w-4 h-4" /> Finalize Receipt
                    </button>
                 </div>
              </form>
@@ -500,218 +419,6 @@ export function Loans() {
         </div>
       )}
 
-      {/* Comprehensive Loan Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden animate-in fade-in zoom-in duration-300 flex flex-col max-h-[90vh]">
-            <div className="px-8 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-              <div>
-                <h2 className="text-2xl font-black text-gray-900 leading-none tracking-tighter">NEW PLEDGE FORM</h2>
-                <p className="text-xs text-gray-500 mt-1 uppercase font-bold tracking-widest">Customer Gold Item Valuation & Loan Entry</p>
-              </div>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-2 text-3xl transition-transform hover:rotate-90 duration-200">&times;</button>
-            </div>
-            
-            <form onSubmit={handleAddSubmit} className="flex-1 overflow-y-auto p-8 grid grid-cols-1 lg:grid-cols-12 gap-10">
-              
-              {/* Left Column: Customer & Goal */}
-              <div className="lg:col-span-4 space-y-8">
-                <div>
-                  <label className="block text-[11px] font-extrabold text-gray-400 uppercase tracking-widest mb-3">1. Select Customer</label>
-                  <div className="relative">
-                    <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <select 
-                      required 
-                      value={selectedCustomerId}
-                      onChange={(e) => setSelectedCustomerId(e.target.value)}
-                      className="w-full pl-10 pr-3 py-3 border-2 border-gray-100 rounded-xl focus:ring-0 focus:border-blue-500 outline-none appearance-none bg-white font-bold text-gray-700 shadow-sm transition-all text-sm"
-                    >
-                      <option value="">Search Customer...</option>
-                      {customers.map(c => (
-                        <option key={c.id} value={c.id}>{c.name} ({c.mobile})</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="p-6 bg-blue-50 rounded-2xl border-2 border-blue-100 space-y-4 shadow-inner">
-                   <h4 className="text-xs font-black text-blue-900 uppercase tracking-widest">Valuation Summary</h4>
-                   <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                         <span className="text-[10px] text-blue-700 font-bold tracking-tight uppercase">Current Mkt Rate (22K)</span>
-                         <span className="text-sm font-black text-blue-900">₹{marketRate}</span>
-                      </div>
-                      <div className="flex justify-between items-center pt-2 border-t border-blue-100">
-                         <span className="text-[10px] text-blue-700 font-bold uppercase">Total Items Value</span>
-                         <span className="text-lg font-black text-blue-900">₹{totalValuation.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-emerald-600 bg-emerald-50 rounded-lg p-2 mt-2">
-                         <span className="text-[9px] font-black uppercase">Max Loan Limit (75%)</span>
-                         <span className="text-sm font-black tracking-tight">₹{maxLoanPossible.toLocaleString()}</span>
-                      </div>
-                   </div>
-                </div>
-
-                <div className="space-y-4">
-                  <label className="block text-[11px] font-extrabold text-gray-400 uppercase tracking-widest">3. Loan Parameters</label>
-                  <div>
-                    <span className="text-[10px] text-gray-500 mb-1 font-bold uppercase tracking-tighter">Principal Loan Amount (₹)</span>
-                    <div className="relative">
-                      <IndianRupee className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-blue-500" />
-                      <input 
-                        required 
-                        type="number" 
-                        value={loanAmount}
-                        onChange={(e) => setLoanAmount(Number(e.target.value))}
-                        max={maxLoanPossible + 5000}
-                        className="w-full pl-10 pr-3 py-3 border-2 border-gray-100 rounded-xl focus:ring-0 focus:border-blue-500 outline-none font-black text-gray-900 text-lg shadow-inner bg-gray-50" 
-                        placeholder="0.00" 
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <span className="text-[10px] text-gray-500 mb-1 font-bold uppercase tracking-tighter">Interest % (Mo)</span>
-                      <input 
-                        required 
-                        type="number" 
-                        step="0.1" 
-                        value={interestRate}
-                        onChange={(e) => setInterestRate(Number(e.target.value))}
-                        className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:ring-0 focus:border-blue-500 outline-none font-bold text-gray-700 shadow-sm" 
-                      />
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-gray-500 mb-1 font-bold uppercase tracking-tighter">Duration (Mo)</span>
-                      <input 
-                        required 
-                        type="number" 
-                        value={duration}
-                        onChange={(e) => setDuration(Number(e.target.value))}
-                        className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:ring-0 focus:border-blue-500 outline-none font-bold text-gray-700 shadow-sm" 
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column: Gold Items */}
-              <div className="lg:col-span-8 space-y-6">
-                 <div className="flex items-center justify-between border-b pb-4">
-                    <label className="block text-[11px] font-extrabold text-gray-400 uppercase tracking-widest">2. Itemized Pledges</label>
-                    <button 
-                      type="button" 
-                      onClick={addGoldItem}
-                      className="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 uppercase tracking-tighter hover:bg-blue-100 transition-colors"
-                    >
-                       <PlusCircle className="w-4 h-4" /> Add Pledged Item
-                    </button>
-                 </div>
-
-                 <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-                    {goldItems.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center py-24 border-2 border-dashed border-gray-100 rounded-[32px] bg-gray-50/50">
-                         <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center mb-4 shadow-inner">
-                             <Gem className="w-10 h-10 text-blue-500" />
-                         </div>
-                         <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em]">Add Customer's Gold to Begin</p>
-                      </div>
-                    ) : (
-                      goldItems.map((item, index) => (
-                        <div key={item.id} className="p-6 bg-white border-2 border-gray-100 rounded-3xl shadow-sm hover:border-blue-200 transition-all flex flex-col sm:flex-row gap-6 relative group border-l-[6px] border-l-blue-500">
-                           <button 
-                             type="button" 
-                             onClick={() => setGoldItems(goldItems.filter((_, i) => i !== index))}
-                             className="absolute -top-2 -right-2 bg-red-500 text-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all z-10 hover:scale-110 active:scale-90"
-                           >
-                             <Trash2 className="w-3.5 h-3.5" />
-                           </button>
-
-                           {/* Item Image Upload */}
-                           <div className="w-full sm:w-28 h-28 rounded-2xl bg-gray-50 flex items-center justify-center border-2 border-dashed border-gray-200 relative overflow-hidden group-hover:border-blue-400 shadow-inner">
-                             {item.image ? (
-                               <img src={item.image} className="w-full h-full object-cover" />
-                             ) : (
-                               <Camera className="w-8 h-8 text-gray-300" />
-                             )}
-                             <input 
-                               type="file" 
-                               accept="image/*" 
-                               onChange={(e) => handlePhotoUpload(index, e)}
-                               className="absolute inset-0 opacity-0 cursor-pointer"
-                             />
-                           </div>
-
-                           <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4">
-                              <div className="col-span-2 md:col-span-1">
-                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter mb-2 block">Item Type</span>
-                                <select 
-                                  value={item.type} 
-                                  onChange={(e) => updateGoldItem(index, 'type', e.target.value)}
-                                  className="w-full border-b border-gray-200 py-1.5 focus:border-blue-500 outline-none text-sm font-black text-gray-900 bg-transparent transition-colors"
-                                >
-                                  <option>Chain</option>
-                                  <option>Ring</option>
-                                  <option>Bracelet</option>
-                                  <option>Necklace</option>
-                                  <option>Earrings</option>
-                                  <option>Coin</option>
-                                </select>
-                              </div>
-                              <div>
-                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter mb-2 block">Weight (g)</span>
-                                <input 
-                                  required 
-                                  type="number" 
-                                  value={item.weight}
-                                  onChange={(e) => updateGoldItem(index, 'weight', e.target.value)}
-                                  className="w-full border-b border-gray-200 py-1.5 focus:border-blue-500 outline-none text-sm font-black text-gray-900 bg-transparent transition-colors"
-                                  placeholder="0.00"
-                                />
-                              </div>
-                              <div>
-                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter mb-2 block">Purity</span>
-                                <select 
-                                  value={item.purity}
-                                  onChange={(e) => updateGoldItem(index, 'purity', e.target.value)}
-                                  className="w-full border-b border-gray-200 py-1.5 focus:border-blue-500 outline-none text-sm font-black text-gray-900 bg-transparent transition-colors"
-                                >
-                                  <option>22K</option>
-                                  <option>24K</option>
-                                  <option>20K</option>
-                                  <option>18K</option>
-                                </select>
-                              </div>
-                              <div className="bg-emerald-50/50 p-2 rounded-xl border border-emerald-100">
-                                <span className="text-[8px] font-black text-emerald-600 uppercase tracking-tighter mb-1 block">Item Valuation</span>
-                                <div className="text-emerald-700 font-extrabold text-sm">₹{item.valuation.toLocaleString()}</div>
-                              </div>
-                           </div>
-                        </div>
-                      ))
-                    )}
-                 </div>
-              </div>
-
-              {/* Submit Row */}
-              <div className="lg:col-span-12 pt-10 flex gap-6 items-end justify-end border-t border-gray-100">
-                <div className="mr-auto hidden sm:block bg-gray-50 px-6 py-4 rounded-3xl border border-gray-100">
-                   <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest block mb-1">Estimated Full Settlement Cost</span>
-                   <div className="text-2xl font-black text-gray-900">₹{Math.round(loanAmount + (loanAmount * (interestRate/100) * duration)).toLocaleString()}</div>
-                </div>
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-8 py-4 rounded-2xl font-black text-xs text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all uppercase tracking-widest">Discard Entry</button>
-                <button 
-                  type="submit" 
-                  disabled={!selectedCustomerId || goldItems.length === 0 || loanAmount <= 0}
-                  className="px-10 py-4 rounded-2xl font-black text-xs text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:cursor-not-allowed transition-all shadow-[0_12px_24px_rgba(37,99,235,0.25)] uppercase tracking-[0.2em] hover:scale-105 active:scale-95"
-                >
-                   Finalize Pledge & Disburse
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
