@@ -25,11 +25,11 @@ export function Header({ onMenuClick }: HeaderProps) {
       
       {/* Center Search Bar & Quick Actions */}
       <div className="hidden lg:flex items-center flex-1 max-w-2xl mx-8 gap-3">
-        <div className="w-full flex items-center border border-gray-300 rounded-md bg-white overflow-hidden transition-all focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+        <div className="w-1/2 flex items-center border border-gray-300 rounded-md bg-white overflow-hidden transition-all focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
           <input 
             type="text" 
             placeholder="Search..." 
-            className="w-full px-4 py-2 text-sm text-gray-700 outline-none" 
+            className="w-full px-4 py-2.5 text-sm text-gray-700 outline-none" 
           />
           <button className="px-3 text-gray-400 hover:text-gray-600">
             <Search className="w-4 h-4"/>
@@ -38,7 +38,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         
         <div className="relative">
           <button 
-            className="px-3 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center justify-center text-gray-600 transition-colors focus:outline-none"
+            className="px-3 py-2.5 bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center justify-center text-gray-600 transition-colors focus:outline-none"
             onClick={() => setIsQuickActionsOpen(!isQuickActionsOpen)}
           >
             <Plus className="w-4 h-4"/>
