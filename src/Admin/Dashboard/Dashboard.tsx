@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { db } from '../lib/db';
+import { db } from '../../lib/db';
 import { IndianRupee, Users, Clock, ShieldAlert, ChevronDown, Download, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 export function Dashboard() {
   const { user } = useAuth();
@@ -16,7 +16,7 @@ export function Dashboard() {
     const fetchData = async () => {
       const customers = await db.get('customers');
       const loans = await db.get('loans');
-      
+
       const active = loans.filter((l: any) => l.status === 'Active');
       const totalAmt = active.reduce((acc: number, l: any) => acc + Number(l.loanAmount), 0);
 
@@ -45,7 +45,7 @@ export function Dashboard() {
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Dashboard</h1>
           <p className="text-sm text-gray-500 mt-1">Welcome back, {user?.username || 'User'}</p>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 bg-white rounded-md text-sm font-medium text-gray-600 hover:bg-gray-50">
             Last 30 Days <ChevronDown className="w-4 h-4 ml-2" />
@@ -93,9 +93,9 @@ export function Dashboard() {
               <CalendarIcon className="w-5 h-5 text-gray-400" /> Action Required
             </div>
             <div className="flex items-center gap-2">
-              <button className="p-1 border border-gray-200 rounded text-gray-600 hover:bg-gray-50"><ChevronLeft className="w-4 h-4"/></button>
+              <button className="p-1 border border-gray-200 rounded text-gray-600 hover:bg-gray-50"><ChevronLeft className="w-4 h-4" /></button>
               <button className="px-3 py-1 border border-gray-200 rounded text-sm text-gray-600 font-medium hover:bg-gray-50">Today</button>
-              <button className="p-1 border border-gray-200 rounded text-gray-600 hover:bg-gray-50"><ChevronRight className="w-4 h-4"/></button>
+              <button className="p-1 border border-gray-200 rounded text-gray-600 hover:bg-gray-50"><ChevronRight className="w-4 h-4" /></button>
             </div>
           </div>
           <div className="p-6 bg-red-50/50 border-b border-red-100">

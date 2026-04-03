@@ -31,7 +31,7 @@ export function Login() {
       
       // The onAuthStateChanged in AuthContext will handle the user role retrieval.
       toast.success("Welcome back!");
-      navigate("/");
+      navigate("/dashboard");
     } catch (error: any) {
       console.error("Login Error:", error);
       toast.error(error.message || "Login failed. Check your credentials.");
@@ -63,7 +63,7 @@ export function Login() {
       }
       
       toast.success("Google Login Successful!");
-      navigate("/");
+      navigate("/dashboard");
     } catch (error: any) {
       console.error("Google Login Error:", error);
       toast.error(error.message || "Google Login Failed");

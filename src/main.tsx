@@ -1,25 +1,45 @@
 import React, { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import App from "./App";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { MainLayout } from "./components/Layout/MainLayout";
-import { Login } from "./pages/Login";
-import { Register } from "./pages/Register";
-import { Dashboard } from "./pages/Dashboard";
-import { Customers } from "./pages/Customers";
+import { Login } from "./Auth/Login";
+import { Register } from "./Auth/Register";
+import { Dashboard } from "./Admin/Dashboard/Dashboard";
+import { Customers } from "./Admin/Customers";
+import { Home } from "./pages/Home";
 import Loader from "./components/CommonComponents/Loader";
 import { Toaster } from "./components/CommonComponents/Toaster";
+import { PrivateRoute } from "./context/PrivateRoute";
 
 const router = createBrowserRouter([
+  // Public Landing Page
   {
     path: "/",
-    element: <MainLayout />, 
+    element: <App />,
+    children: [
+      { index: true, element: <Home /> },
+    ]
+  },
+
+  // Protected Admin Area
+  {
+    path: "/admin",
+    element: (
+      <PrivateRoute allowedRoles={["admin", "user"]}>
+        <MainLayout />
+      </PrivateRoute>
+    ),
     children: [
       { index: true, element: <Dashboard /> },
-      { path: "customers", element: <Customers /> },
-    ],
+      { path: "customers",element: <Customers /> }
+    ]
   },
+
+
+
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
 ]);

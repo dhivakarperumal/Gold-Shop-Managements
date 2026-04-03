@@ -1,7 +1,7 @@
 import { NavLink, Outlet, Navigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { LayoutDashboard, Users, Coins, Briefcase, BarChart3, Menu, X, ChevronDown, Search, Plus, UserPlus, FileText } from 'lucide-react';
+import { LayoutDashboard, Users, Coins, Briefcase, BarChart3, Menu, X, Search, Plus, UserPlus, FileText } from 'lucide-react';
 
 export function MainLayout() {
   const { user, logout } = useAuth();
@@ -21,11 +21,11 @@ export function MainLayout() {
   }
 
   const navItems = [
-    { name: 'Dashboard', path: '/', icon: LayoutDashboard, roles: ['admin', 'user'] },
-    { name: 'Customers', path: '/customers', icon: Users, roles: ['admin'] },
-    { name: 'Loans', path: '/loans', icon: Coins, roles: ['admin', 'user'] },
-    { name: 'Dealers', path: '/dealers', icon: Briefcase, roles: ['admin'] },
-    { name: 'Reports', path: '/reports', icon: BarChart3, roles: ['admin'] }
+    { name: 'Dashboard', path: '/admin', icon: LayoutDashboard, roles: ['admin', 'user'] },
+    { name: 'Customers', path: '/admin/customers', icon: Users, roles: ['admin'] },
+    { name: 'Loans', path: '/admin/loans', icon: Coins, roles: ['admin', 'user'] },
+    { name: 'Dealers', path: '/admin/dealers', icon: Briefcase, roles: ['admin'] },
+    { name: 'Reports', path: '/admin/reports', icon: BarChart3, roles: ['admin'] }
   ];
 
   const filteredNavItems = navItems.filter(item => 
@@ -70,7 +70,7 @@ export function MainLayout() {
         
         <div className="p-4 flex-1 overflow-y-auto mt-2">
           <nav className="space-y-1.5">
-            {navItems.map((item) => (
+            {filteredNavItems.map((item) => (
               <NavLink
                 key={item.name}
                 to={item.path}
