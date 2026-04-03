@@ -21,12 +21,16 @@ export function MainLayout() {
   }
 
   const navItems = [
-    { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-    { name: 'Customers', path: '/customers', icon: Users },
-    { name: 'Loans', path: '/loans', icon: Coins },
-    { name: 'Dealers', path: '/dealers', icon: Briefcase },
-    { name: 'Reports', path: '/reports', icon: BarChart3 }
+    { name: 'Dashboard', path: '/', icon: LayoutDashboard, roles: ['admin', 'user'] },
+    { name: 'Customers', path: '/customers', icon: Users, roles: ['admin'] },
+    { name: 'Loans', path: '/loans', icon: Coins, roles: ['admin', 'user'] },
+    { name: 'Dealers', path: '/dealers', icon: Briefcase, roles: ['admin'] },
+    { name: 'Reports', path: '/reports', icon: BarChart3, roles: ['admin'] }
   ];
+
+  const filteredNavItems = navItems.filter(item => 
+    user && item.roles.includes(user.role as any)
+  );
 
   return (
     <div className="flex h-screen bg-gray-50 font-sans overflow-hidden">
@@ -158,10 +162,10 @@ export function MainLayout() {
                onClick={() => setIsProfileOpen(!isProfileOpen)}
              >
                <div className="w-9 h-9 rounded-full bg-[#1b88f3] flex items-center justify-center text-white text-[15px] font-medium shadow-sm">
-                 {user?.name?.[0]?.toUpperCase() || 'S'}
+                 {user?.username?.[0]?.toUpperCase() || 'S'}
                </div>
                <span className="text-[15px] font-medium text-[#111827] hidden sm:block">
-                 {user?.name || 'Suvithra'}
+                 {user?.username || 'Suvithra'}
                </span>
              </button>
 
@@ -174,7 +178,7 @@ export function MainLayout() {
                  
                  <div className="absolute right-0 mt-2 w-[220px] bg-white rounded-md shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] border border-gray-200 z-50 py-1 overflow-hidden transform origin-top-right">
                    <div className="px-4 py-2.5">
-                     <p className="text-[13px] font-bold text-gray-900">{user?.name || 'Suvithras'} - My Account</p>
+                     <p className="text-[13px] font-bold text-gray-900">{user?.username || 'Suvithras'} - My Account</p>
                    </div>
                    
                    <div className="h-px bg-gray-100"></div>

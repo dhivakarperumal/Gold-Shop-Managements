@@ -1,46 +1,73 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { auth, dbFirestore } from '../lib/firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
-type User = {
+interface User {
   id: string;
-  name: string;
-  role: 'Admin' | 'Staff'; 
-};
+  username: string;
+  email: string;
+  role: string;
+  phone?: string;
+  employeeId?: string;
+  status?: string;
+}
 
 interface AuthContextType {
   user: User | null;
-  login: (name: string, role: 'Admin' | 'Staff') => void;
-  logout: () => void;
   isLoading: boolean;
+  logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check local storage for session
-    const stored = localStorage.getItem('gold_app_user');
-    if (stored) {
-      setUser(JSON.parse(stored));
-    }
-    setIsLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const userDoc = await getDoc(doc(dbFirestore, 'users', firebaseUser.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setUser({
+              id: firebaseUser.uid,
+              username: userData.username || firebaseUser.displayName || 'No Name',
+              email: firebaseUser.email || '',
+              role: userData.role || 'user',
+              phone: userData.phone,
+              employeeId: userData.employeeId,
+              status: userData.status
+            });
+          } else {
+            // Fallback for missing document
+            setUser({
+              id: firebaseUser.uid,
+              username: firebaseUser.displayName || 'New User',
+              email: firebaseUser.email || '',
+              role: 'user',
+            });
+          }
+        } catch (error) {
+          console.error("Auth context error:", error);
+        }
+      } else {
+        setUser(null);
+      }
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  const login = (name: string, role: 'Admin' | 'Staff') => {
-    const u = { id: Math.random().toString(), name, role };
-    setUser(u);
-    localStorage.setItem('gold_app_user', JSON.stringify(u));
-  };
-
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('gold_app_user');
+  const logout = async () => {
+    await signOut(auth);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
