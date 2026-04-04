@@ -13,7 +13,7 @@ export function Customers() {
   const deleteCustomer = async (id: string) => {
     if(confirm('Are you sure you want to delete this customer? All associated data will be removed.')) {
       await db.delete('customers', id);
-      // Loans will be updated automatically via onSnapshot in DataContext
+      
     }
   };
 
