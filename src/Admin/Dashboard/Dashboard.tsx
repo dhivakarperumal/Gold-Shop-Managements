@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { 
-  IndianRupee, Users, Clock, ShieldAlert, ChevronDown, 
+  IndianRupee, Users, User, Clock, ShieldAlert, ChevronDown, 
   Download, Calendar as CalendarIcon, 
-  TrendingUp, Wallet, ArrowUpRight, ArrowDownRight, Gem, AlertTriangle
+  TrendingUp, Gem
 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 
@@ -72,10 +72,10 @@ export function Dashboard() {
   }, [customers, loans, payments, isDataLoading]);
 
   const statCards = [
-    { title: 'Total Outstanding', value: `₹${stats.outstandingAmount.toLocaleString()}`, change: '+12.5%', icon: IndianRupee, color: 'text-white', bg: 'bg-blue-600' },
-    { title: 'Overdue Ledger', value: stats.overdueLoans.toString(), change: '+2', icon: AlertTriangle, color: 'text-white', bg: 'bg-red-500' },
-    { title: 'Today\'s Liquidity', value: `₹${stats.collectedToday.toLocaleString()}`, change: '+5.2%', icon: Wallet, color: 'text-white', bg: 'bg-emerald-500' },
-    { title: 'Active Portfolio', value: stats.activeLoans.toString(), change: '+8', icon: Users, color: 'text-white', bg: 'bg-indigo-600' },
+    { title: 'Total Collections', value: `₹${stats.collectedToday.toLocaleString()}`, icon: IndianRupee, bg: 'bg-[#1b88f3]' },
+    { title: 'Upcoming Collections', value: upcomingCollections.length.toString(), icon: Clock, bg: 'bg-[#f39c12]' },
+    { title: 'Active Loans', value: stats.activeLoans.toString(), icon: Users, bg: 'bg-[#10ac84]' },
+    { title: 'Total Customers', value: stats.totalCustomers.toString(), icon: User, bg: 'bg-[#5f27cd]' },
   ];
 
   return (
@@ -98,22 +98,15 @@ export function Dashboard() {
       </div>
 
       {/* Stats Cards Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((stat, i) => (
-          <div key={i} className="bg-white rounded-[32px] shadow-sm border border-gray-100 p-8 hover:shadow-xl transition-all group relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-gray-50 rounded-full -mr-12 -mt-12 group-hover:bg-blue-50 transition-colors"></div>
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${stat.bg} shadow-lg shadow-blue-900/10 group-hover:scale-110 transition-transform relative z-10`}>
-              <stat.icon className={`w-7 h-7 ${stat.color}`} />
+          <div key={i} className="bg-white rounded-xl p-6 border border-gray-100 flex items-center gap-4 shadow-sm hover:shadow-md transition-all">
+            <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${stat.bg} shadow-sm`}>
+              <stat.icon className="w-6 h-6 text-white" />
             </div>
-            <div className="mt-6 space-y-1 relative z-10">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{stat.title}</p>
-              <div className="flex items-baseline gap-2">
-                 <h3 className="text-2xl font-black text-gray-900 tracking-tighter">{stat.value}</h3>
-                 <span className={`text-[10px] font-black flex items-center gap-0.5 ${stat.change.startsWith('+') ? 'text-emerald-500' : 'text-red-500'}`}>
-                    {stat.change.startsWith('+') ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                    {stat.change}
-                 </span>
-              </div>
+            <div className="flex flex-col min-w-0">
+              <p className="text-gray-500 text-sm font-semibold truncate">{stat.title}</p>
+              <h3 className="text-3xl font-black text-gray-900 leading-none mt-1">{stat.value}</h3>
             </div>
           </div>
         ))}
