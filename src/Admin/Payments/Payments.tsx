@@ -1,26 +1,14 @@
-import { useState, useEffect } from 'react';
-import { db } from '../../lib/db';
-import { Search, IndianRupee, Calendar, User, Download, Printer, CheckCircle, Wallet, X, LayoutGrid, List } from 'lucide-react';
+import { useState } from 'react';
+import { useData } from '../../context/DataContext';
+import { Search, IndianRupee, Calendar, Download, Printer, CheckCircle, Wallet, LayoutGrid, List } from 'lucide-react';
 
 export function Payments() {
-  const [payments, setPayments] = useState<any[]>([]);
-  const [loans, setLoans] = useState<any[]>([]);
+  const { payments } = useData();
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('All');
   const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
-
-  const loadData = async () => {
-    const paymentData = await db.get('payments');
-    const loanData = await db.get('loans');
-    setPayments(paymentData);
-    setLoans(loanData);
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
 
   const printReceipt = (payment: any) => {
     setSelectedReceipt(payment);

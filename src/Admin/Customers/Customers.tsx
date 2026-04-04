@@ -1,32 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../../lib/db';
+import { useData } from '../../context/DataContext';
 import { Search, Plus, Trash2, Edit2, User, Phone, LayoutGrid, List, Eye, Mail, ShieldCheck } from 'lucide-react';
 
 export function Customers() {
   const navigate = useNavigate();
-  const [customers, setCustomers] = useState<any[]>([]);
+  const { customers } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
-
-  const loadCustomers = async () => {
-    const data = await db.get('customers');
-    setCustomers(data);
-  };
-
-  useEffect(() => {
-    loadCustomers();
-  }, []);
 
   const deleteCustomer = async (id: string) => {
     if(confirm('Are you sure you want to delete this customer? All associated data will be removed.')) {
       await db.delete('customers', id);
-      const loans = await db.get('loans');
-      const customerLoans = loans.filter((l: any) => l.customerId === id);
-      for(const loan of customerLoans) {
-        await db.delete('loans', loan.id);
-      }
-      loadCustomers();
+      // Loans will be updated automatically via onSnapshot in DataContext
     }
   };
 

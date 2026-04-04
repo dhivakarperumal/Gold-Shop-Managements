@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react';
-import { db } from '../../lib/db';
 import { 
   IndianRupee, Users, Clock, ShieldAlert, ChevronDown, 
   Download, Calendar as CalendarIcon, 
   TrendingUp, Wallet, ArrowUpRight, ArrowDownRight, Gem, AlertTriangle
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { useData } from '../../context/DataContext';
 
 export function Dashboard() {
-  const { user } = useAuth();
+  const { customers, loans, payments, isDataLoading } = useData();
   const [stats, setStats] = useState({
     totalCustomers: 0,
     totalLoans: 0,
@@ -24,58 +23,53 @@ export function Dashboard() {
   const [upcomingCollections, setUpcomingCollections] = useState<any[]>([]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const customers = await db.get('customers');
-      const loans = await db.get('loans');
-      const payments = await db.get('payments');
+    if (isDataLoading) return;
 
-      const active = (loans as any[]).filter((l) => l.status === 'Active');
-      const overdue = (loans as any[]).filter((l) => l.status === 'Overdue' || (l.status === 'Active' && new Date(l.dueDate) < new Date()));
-      const outstanding = active.reduce((acc, l) => acc + (Number(l.balanceAmount) || Number(l.loanAmount)), 0);
-      
-      const today = new Date().toISOString().split('T')[0];
-      const todayPayments = (payments as any[]).filter((p) => p.date?.includes(today));
-      const collected = todayPayments.reduce((acc, p) => acc + (Number(p.amount) || 0), 0);
+    const active = (loans as any[]).filter((l) => l.status === 'Active');
+    const overdue = (loans as any[]).filter((l) => l.status === 'Overdue' || (l.status === 'Active' && new Date(l.dueDate) < new Date()));
+    const outstanding = active.reduce((acc, l) => acc + (Number(l.balanceAmount) || Number(l.loanAmount)), 0);
+    
+    const today = new Date().toISOString().split('T')[0];
+    const todayPayments = (payments as any[]).filter((p) => p.date?.includes(today));
+    const collected = todayPayments.reduce((acc, p) => acc + (Number(p.amount) || 0), 0);
 
-      setStats(prev => ({
-        ...prev,
-        totalCustomers: customers.length,
-        totalLoans: loans.length,
-        activeLoans: active.length,
-        outstandingAmount: outstanding,
-        collectedToday: collected,
-        overdueLoans: overdue.length
-      }));
+    setStats(prev => ({
+      ...prev,
+      totalCustomers: customers.length,
+      totalLoans: loans.length,
+      activeLoans: active.length,
+      outstandingAmount: outstanding,
+      collectedToday: collected,
+      overdueLoans: overdue.length
+    }));
 
-      // Map dynamic activities
-      const allActivities = [
-        ...(loans as any[]).map(l => ({ 
-          user: l.customerName || 'UNKNOWN', 
-          action: `pledged ${l.goldItems?.reduce((acc: number, i: any) => acc + Number(i.weight), 0).toFixed(2) || '0.00'}g Gold`, 
-          time: new Date(l.createdAt || l.startDate || l.loanDate).toLocaleString(), 
-          timestamp: new Date(l.createdAt || l.startDate || l.loanDate).getTime(),
-          icon: Gem, bg: 'bg-amber-50', text: 'text-amber-600' 
-        })),
-        ...(payments as any[]).map(p => ({ 
-          user: p.customerName || 'UNKNOWN', 
-          action: `repaid ₹${p.amount?.toLocaleString() || '0'} (${p.type || 'EMI'})`, 
-          time: new Date(p.date).toLocaleString(), 
-          timestamp: new Date(p.date).getTime(),
-          icon: IndianRupee, bg: 'bg-emerald-50', text: 'text-emerald-600' 
-        }))
-      ].sort((a, b) => b.timestamp - a.timestamp).slice(0, 5);
-      
-      setRecentActivities(allActivities);
+    // Map dynamic activities
+    const allActivities = [
+      ...(loans as any[]).map(l => ({ 
+        user: l.customerName || 'UNKNOWN', 
+        action: `pledged ${l.goldItems?.reduce((acc: number, i: any) => acc + Number(i.weight), 0).toFixed(2) || '0.00'}g Gold`, 
+        time: new Date(l.createdAt || l.startDate || l.loanDate).toLocaleString(), 
+        timestamp: new Date(l.createdAt || l.startDate || l.loanDate).getTime(),
+        icon: Gem, bg: 'bg-amber-50', text: 'text-amber-600' 
+      })),
+      ...(payments as any[]).map(p => ({ 
+        user: p.customerName || 'UNKNOWN', 
+        action: `repaid ₹${p.amount?.toLocaleString() || '0'} (${p.type || 'EMI'})`, 
+        time: new Date(p.date).toLocaleString(), 
+        timestamp: new Date(p.date).getTime(),
+        icon: IndianRupee, bg: 'bg-emerald-50', text: 'text-emerald-600' 
+      }))
+    ].sort((a, b) => b.timestamp - a.timestamp).slice(0, 5);
+    
+    setRecentActivities(allActivities);
 
-      // Upcoming collections
-      const upcoming = active
-        .filter((l) => l.dueDate && new Date(l.dueDate) >= new Date())
-        .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-        .slice(0, 5);
-      setUpcomingCollections(upcoming);
-    };
-    fetchData();
-  }, []);
+    // Upcoming collections
+    const upcoming = active
+      .filter((l) => l.dueDate && new Date(l.dueDate) >= new Date())
+      .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+      .slice(0, 5);
+    setUpcomingCollections(upcoming);
+  }, [customers, loans, payments, isDataLoading]);
 
   const statCards = [
     { title: 'Total Outstanding', value: `₹${stats.outstandingAmount.toLocaleString()}`, change: '+12.5%', icon: IndianRupee, color: 'text-white', bg: 'bg-blue-600' },

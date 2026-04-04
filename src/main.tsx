@@ -4,6 +4,7 @@ import "./index.css";
 import App from "./App";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import { DataProvider } from "./context/DataContext";
 import { MainLayout } from "./components/Layout/MainLayout";
 import { Login } from "./Auth/Login";
 import { Register } from "./Auth/Register";
@@ -62,10 +63,12 @@ const router = createBrowserRouter([
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <AuthProvider>
-      <Toaster />
-      <React.Suspense fallback={<Loader />}>
-        <RouterProvider router={router} />
-      </React.Suspense>
+      <DataProvider>
+        <Toaster />
+        <React.Suspense fallback={<Loader />}>
+          <RouterProvider router={router} />
+        </React.Suspense>
+      </DataProvider>
     </AuthProvider>
   </StrictMode>
 );

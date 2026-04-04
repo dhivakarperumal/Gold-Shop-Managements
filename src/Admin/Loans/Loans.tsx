@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../../lib/db';
+import { useData } from '../../context/DataContext';
 import { Search, Plus, Trash2, IndianRupee, Calendar, Gem, Wallet, CheckCircle, Clock, AlertCircle, Receipt, LayoutGrid, List } from 'lucide-react';
 
 export function Loans() {
   const navigate = useNavigate();
-  const [loans, setLoans] = useState<any[]>([]);
-  const [customers, setCustomers] = useState<any[]>([]);
+  const { loans, customers } = useData();
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -15,17 +15,6 @@ export function Loans() {
   // Payment Form State
   const [paymentAmount, setPaymentAmount] = useState<number>(0);
   const [paymentType, setPaymentType] = useState('Interest');
-
-  const loadData = async () => {
-    const loanData = await db.get('loans');
-    const customerData = await db.get('customers');
-    setLoans(loanData);
-    setCustomers(customerData);
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
 
   const handlePaymentSubmit = async (e: any) => {
     e.preventDefault();
@@ -83,7 +72,6 @@ export function Loans() {
     setIsPaymentModalOpen(false);
     setSelectedLoan(null);
     setPaymentAmount(0);
-    loadData();
   };
 
   const deleteLoan = async (id: string) => {
@@ -99,7 +87,6 @@ export function Loans() {
         }
       }
       await db.delete('loans', id);
-      loadData();
     }
   };
 
