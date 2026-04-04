@@ -100,7 +100,7 @@ export function Loans() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-black text-gray-900 tracking-tight uppercase">Advanced Loan Manager</h1>
+          <h1 className="text-lg font-black text-gray-900 tracking-tight uppercase">Advanced Loan Manager</h1>
           <p className="text-xs text-gray-500 mt-1 uppercase font-bold tracking-widest">Multi-item pledging & interest tracking.</p>
         </div>
         <button 

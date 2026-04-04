@@ -4,7 +4,7 @@ import { db } from '../../lib/db';
 import { 
   User, Phone, Mail, MapPin, CreditCard, Calendar, 
   History, Wallet, Gem, ShieldCheck,
-  Edit2, Trash2, Printer, ArrowLeft, Download, Plus, CheckCircle
+  Edit2, ArrowLeft, Download, Plus, CheckCircle
 } from 'lucide-react';
 
 export function CustomerProfile() {
@@ -52,7 +52,7 @@ export function CustomerProfile() {
               <ArrowLeft className="w-6 h-6 transition-transform group-hover:-translate-x-1" />
            </button>
            <div>
-              <h1 className="text-3xl font-black text-gray-900 tracking-tighter uppercase leading-none">{customer.name}</h1>
+              <h1 className="text-lg font-black text-gray-900 tracking-tight uppercase leading-none">{customer.name}</h1>
               <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mt-2">{customer.customerId || 'PREMIUM CLIENT'}</p>
            </div>
         </div>

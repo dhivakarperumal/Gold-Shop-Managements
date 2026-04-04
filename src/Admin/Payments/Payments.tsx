@@ -26,8 +26,8 @@ export function Payments() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Payment & EMI History</h1>
-          <p className="text-sm text-gray-500 mt-1">Track collections, interest payments and settlements.</p>
+          <h1 className="text-lg font-black text-gray-900 tracking-tight uppercase">Payment & EMI History</h1>
+          <p className="text-xs text-gray-500 mt-1 uppercase font-bold tracking-widest">Track collections, interest payments and settlements.</p>
         </div>
         <div className="flex items-center gap-3">
           <button className="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg font-bold text-xs shadow-sm flex items-center gap-2 transition-colors uppercase tracking-wider">

@@ -110,7 +110,7 @@ export function CustomerForm() {
     <div className="max-w-6xl mx-auto space-y-6 pb-20">
       <div className="flex justify-between items-center bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
         <div>
-          <h1 className="text-2xl font-black text-gray-900 tracking-tight">
+          <h1 className="text-lg font-black text-gray-900 tracking-tight">
             {id ? 'EDIT CUSTOMER PROFILE' : 'NEW CUSTOMER ONBOARDING'}
           </h1>
           <p className="text-xs font-bold text-blue-500 uppercase tracking-widest mt-1">

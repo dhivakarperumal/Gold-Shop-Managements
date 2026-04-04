@@ -138,8 +138,8 @@ export function Dashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tighter uppercase leading-none">Management Hub</h1>
-          <p className="text-[10px] text-gray-400 mt-2 font-black uppercase tracking-[0.2em] border-l-2 border-blue-600 pl-3">Centralized Operations • {new Date().toLocaleDateString()}</p>
+          <h1 className="text-lg font-black text-gray-900 tracking-tight uppercase leading-none">Management Hub</h1>
+          <p className="text-xs text-gray-400 mt-2 font-black uppercase tracking-[0.2em] border-l-2 border-blue-600 pl-3">Centralized Operations • {new Date().toLocaleDateString()}</p>
         </div>
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 px-8 py-3.5 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black shadow-xl shadow-gray-100 transition-all hover:scale-105">
@@ -173,8 +173,8 @@ export function Dashboard() {
                     <CalendarIcon className="w-6 h-6" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-black text-gray-900 tracking-tighter uppercase leading-none">Collection Calendar</h2>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Smart settlement & installment tracker</p>
+                    <h2 className="text-lg font-black text-gray-900 tracking-tight uppercase leading-none">Collection Calendar</h2>
+                    <p className="text-xs font-black text-gray-400 uppercase tracking-widest mt-1">Smart settlement & installment tracker</p>
                   </div>
                 </div>
                 <div className="flex bg-gray-100 p-1.5 border border-gray-100 rounded-2xl shrink-0">
@@ -328,8 +328,8 @@ export function Dashboard() {
            <div className="bg-white rounded-[40px] shadow-2xl w-full max-w-xl relative overflow-hidden animate-in zoom-in-95 duration-200">
               <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                  <div>
-                    <h4 className="text-2xl font-black text-gray-900 tracking-tighter uppercase leading-none">Schedule Detail</h4>
-                    <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mt-2">{selectedDayDetail.day.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                    <h4 className="text-lg font-black text-gray-900 tracking-tight uppercase leading-none">Schedule Detail</h4>
+                    <p className="text-xs font-black text-blue-600 uppercase tracking-widest mt-2">{selectedDayDetail.day.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
                  </div>
                  <button onClick={() => setSelectedDayDetail(null)} className="p-3 hover:bg-gray-200 rounded-full transition-colors"><X className="w-6 h-6 text-gray-400" /></button>
               </div>

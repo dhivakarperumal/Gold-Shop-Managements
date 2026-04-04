@@ -11,8 +11,8 @@ export function Reports() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Financial Reports</h1>
-          <p className="text-sm text-gray-500 mt-1">Analyze your shop's performance and collection metrics.</p>
+          <h1 className="text-lg font-black text-gray-900 tracking-tight uppercase">Financial Reports</h1>
+          <p className="text-xs text-gray-500 mt-1 uppercase font-bold tracking-widest">Analyze your shop's performance and collection metrics.</p>
         </div>
         <button className="bg-[#1b88f3] hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm flex items-center gap-2 transition-colors">
           <Download className="w-5 h-5" />

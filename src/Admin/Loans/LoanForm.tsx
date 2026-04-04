@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../../lib/db';
 import { 
-  User, Search, Gem, IndianRupee, Percent, Calculator, 
-  Calendar, ShieldCheck, Plus, Trash2, Camera, Info, 
-  CheckCircle, FileText, Wallet
+  User, Search, CheckCircle, Gem, Trash2, Camera, 
+  Plus, Calculator, Wallet, ShieldCheck
 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 
@@ -184,7 +183,7 @@ export function LoanForm() {
   return (
     <div className="max-w-7xl mx-auto pb-20 px-4">
       <div className="mb-8">
-        <h1 className="text-4xl font-black text-gray-900 tracking-tighter uppercase mb-2">New Pledge Entry</h1>
+        <h1 className="text-lg font-black text-gray-900 tracking-tight uppercase mb-1">New Pledge Entry</h1>
         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest border-l-4 border-blue-600 pl-4">Single-Page Onboarding • Direct Fund Disbursement</p>
       </div>
 
