@@ -10,6 +10,10 @@ export function Customers() {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
   const deleteCustomer = async (id: string) => {
     if(confirm('Are you sure you want to delete this customer? All associated data will be removed.')) {
       await db.delete('customers', id);
@@ -22,6 +26,9 @@ export function Customers() {
     c.mobile?.includes(searchTerm) ||
     c.customerId?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedCustomers = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="space-y-6">
@@ -90,7 +97,7 @@ export function Customers() {
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((c) => (
+                  paginatedCustomers.map((c) => (
                     <tr key={c.id} className="hover:bg-gray-50/80 transition-colors group not-italic">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
@@ -166,7 +173,7 @@ export function Customers() {
             {filtered.length === 0 ? (
                <div className="col-span-full py-20 text-center text-gray-400 font-black uppercase tracking-widest text-[10px]">No records detected</div>
             ) : (
-              filtered.map((c) => (
+              paginatedCustomers.map((c) => (
                 <div key={c.id} className="bg-white rounded-[32px] border border-gray-100 shadow-sm hover:shadow-md transition-all group overflow-hidden flex flex-col">
                   <div className="p-6 border-b border-gray-50 bg-gray-50/30 flex justify-between items-start">
                     <div className="flex gap-4">
@@ -229,6 +236,42 @@ export function Customers() {
                 </div>
               ))
             )}
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {filtered.length > itemsPerPage && (
+          <div className="p-6 border-t border-gray-100 bg-gray-50/30 flex flex-col sm:flex-row justify-between items-center gap-4">
+             <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                Showing {Math.min(filtered.length, (currentPage - 1) * itemsPerPage + 1)}-{Math.min(filtered.length, currentPage * itemsPerPage)} of {filtered.length} customers
+             </div>
+             <div className="flex items-center gap-2">
+                <button 
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => prev - 1)}
+                  className="px-4 py-2 border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white disabled:opacity-30 disabled:pointer-events-none transition-all"
+                >
+                  Prev
+                </button>
+                <div className="flex items-center gap-1">
+                   {[...Array(totalPages)].map((_, i) => (
+                     <button
+                        key={i}
+                        onClick={() => setCurrentPage(i + 1)}
+                        className={`w-8 h-8 rounded-lg text-[10px] font-black transition-all ${currentPage === i + 1 ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:bg-white border border-transparent'}`}
+                     >
+                       {i + 1}
+                     </button>
+                   ))}
+                </div>
+                <button 
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => prev + 1)}
+                  className="px-4 py-2 border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white disabled:opacity-30 disabled:pointer-events-none transition-all"
+                >
+                  Next
+                </button>
+             </div>
           </div>
         )}
       </div>

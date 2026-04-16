@@ -10,6 +10,10 @@ export function Payments() {
   const [filterType, setFilterType] = useState('All');
   const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   const printReceipt = (payment: any) => {
     setSelectedReceipt(payment);
     setIsReceiptOpen(true);
@@ -21,6 +25,9 @@ export function Payments() {
     const matchesType = filterType === 'All' || p.type === filterType;
     return matchesSearch && matchesType;
   }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedPayments = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="space-y-6">
@@ -88,6 +95,7 @@ export function Payments() {
             <table className="w-full text-left text-sm">
               <thead className="bg-gray-50 text-gray-600 font-semibold border-b border-gray-200 uppercase text-[11px] tracking-wider">
                 <tr>
+                  <th className="px-6 py-4 w-12">S.No</th>
                   <th className="px-6 py-4">Transaction Details</th>
                   <th className="px-6 py-4">Customer</th>
                   <th className="px-6 py-4">Loan Ref</th>
@@ -99,14 +107,17 @@ export function Payments() {
               <tbody className="divide-y divide-gray-100">
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-gray-400 font-black uppercase tracking-widest text-[10px]">
+                    <td colSpan={7} className="px-6 py-12 text-center text-gray-400 font-black uppercase tracking-widest text-[10px]">
                       <Wallet className="w-12 h-12 mx-auto mb-3 opacity-10" />
                       No payment history found.
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((p) => (
+                  paginatedPayments.map((p, index) => (
                     <tr key={p.id} className="hover:bg-gray-50/80 transition-colors group">
+                      <td className="px-6 py-4 text-[10px] font-black text-gray-400">
+                         {(currentPage - 1) * itemsPerPage + index + 1}
+                      </td>
                       <td className="px-6 py-4">
                         <div className="font-mono text-[10px] text-gray-400 mb-1 uppercase">#{p.id?.slice(-8).toUpperCase()}</div>
                         <div className="flex items-center gap-2 text-xs text-gray-600 font-medium">
@@ -116,6 +127,11 @@ export function Payments() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors lowercase first-letter:uppercase">{p.customerName}</div>
+                        {p.isThirdParty && (
+                          <div className="text-[9px] font-black text-amber-600 uppercase tracking-tighter mt-0.5">
+                            Paid by: {p.payerName} ({p.payerRelation})
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                          <span className="font-mono text-[10px] text-gray-500 font-bold border border-gray-200 px-1.5 py-0.5 rounded italic">
@@ -155,12 +171,15 @@ export function Payments() {
                   <p className="text-lg font-black uppercase tracking-widest text-[10px]">No transaction records found</p>
                </div>
             ) : (
-              filtered.map((p) => (
+              paginatedPayments.map((p) => (
                 <div key={p.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group overflow-hidden flex flex-col">
                   <div className="p-5 border-b border-gray-50 bg-gray-50/30 flex justify-between items-center">
                     <div>
                       <div className="font-mono text-[9px] text-gray-400 uppercase tracking-tighter leading-none mb-1">REC-#{p.id?.slice(-8).toUpperCase()}</div>
                       <h3 className="font-black text-gray-900 group-hover:text-blue-600 transition-colors uppercase leading-none">{p.customerName}</h3>
+                      {p.isThirdParty && (
+                        <div className="text-[10px] font-bold text-amber-600 mt-1 uppercase tracking-tighter">Payer: {p.payerName}</div>
+                      )}
                     </div>
                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border ${
                       p.type === 'Settlement' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
@@ -204,6 +223,42 @@ export function Payments() {
             )}
           </div>
         )}
+
+        {/* Pagination Controls */}
+        {filtered.length > itemsPerPage && (
+          <div className="p-6 border-t border-gray-100 bg-gray-50/30 flex flex-col sm:flex-row justify-between items-center gap-4">
+             <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                Showing {Math.min(filtered.length, (currentPage - 1) * itemsPerPage + 1)}-{Math.min(filtered.length, currentPage * itemsPerPage)} of {filtered.length} payments
+             </div>
+             <div className="flex items-center gap-2">
+                <button 
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => prev - 1)}
+                  className="px-4 py-2 border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white disabled:opacity-30 disabled:pointer-events-none transition-all"
+                >
+                  Prev
+                </button>
+                <div className="flex items-center gap-1">
+                   {[...Array(totalPages)].map((_, i) => (
+                     <button
+                        key={i}
+                        onClick={() => setCurrentPage(i + 1)}
+                        className={`w-8 h-8 rounded-lg text-[10px] font-black transition-all ${currentPage === i + 1 ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:bg-white border border-transparent'}`}
+                     >
+                       {i + 1}
+                     </button>
+                   ))}
+                </div>
+                <button 
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => prev + 1)}
+                  className="px-4 py-2 border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white disabled:opacity-30 disabled:pointer-events-none transition-all"
+                >
+                  Next
+                </button>
+             </div>
+          </div>
+        )}
       </div>
 
       {/* Receipt Modal */}
@@ -233,14 +288,26 @@ export function Payments() {
                 </div>
                 
                 <div className="py-6 border-y-2 border-dashed border-gray-100 my-6 space-y-3">
-                   <div className="flex justify-between">
-                      <span className="text-xs font-black text-gray-500 uppercase">Customer</span>
-                      <span className="text-sm font-black text-gray-900">{selectedReceipt.customerName}</span>
-                   </div>
-                   <div className="flex justify-between">
-                      <span className="text-xs font-black text-gray-500 uppercase">Loan Reference</span>
-                      <span className="text-xs font-mono font-bold text-gray-900">LOAN-{selectedReceipt.loanId?.slice(-8).toUpperCase()}</span>
-                   </div>
+                    <div className="flex justify-between">
+                       <span className="text-xs font-black text-gray-500 uppercase">Customer</span>
+                       <span className="text-sm font-black text-gray-900">{selectedReceipt.customerName}</span>
+                    </div>
+                    {selectedReceipt.isThirdParty && (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-xs font-black text-gray-500 uppercase">Paid By (Third Party)</span>
+                          <span className="text-sm font-black text-amber-600 uppercase">{selectedReceipt.payerName}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-xs font-black text-gray-400 uppercase">Relationship</span>
+                          <span className="text-xs font-bold text-gray-600">{selectedReceipt.payerRelation}</span>
+                        </div>
+                      </>
+                    )}
+                    <div className="flex justify-between">
+                       <span className="text-xs font-black text-gray-500 uppercase">Loan Reference</span>
+                       <span className="text-xs font-mono font-bold text-gray-900">LOAN-{selectedReceipt.loanId?.slice(-8).toUpperCase()}</span>
+                    </div>
                    <div className="flex justify-between">
                       <span className="text-xs font-black text-gray-500 uppercase">Payment Type</span>
                       <span className="text-xs font-black text-blue-600 uppercase tracking-wider">{selectedReceipt.type}</span>
@@ -259,6 +326,14 @@ export function Payments() {
                   <div className="flex justify-between items-center px-2">
                      <span className="text-[10px] font-bold text-gray-400 uppercase">Remaining Balance</span>
                      <span className="text-sm font-black text-red-500">₹{Number(selectedReceipt.balance).toLocaleString()}</span>
+                  </div>
+                )}
+
+                {selectedReceipt.idDocument && (
+                  <div className="mt-6 p-4 border border-gray-100 rounded-2xl bg-gray-50/50">
+                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-3">Security: Identity Document</span>
+                     <img src={selectedReceipt.idDocument} className="w-full h-32 object-cover rounded-xl grayscale hover:grayscale-0 transition-all border border-gray-100 shadow-sm" />
+                     <div className="mt-2 text-[8px] font-bold text-emerald-600 uppercase">Verified ID: {selectedReceipt.idVerified}</div>
                   </div>
                 )}
              </div>

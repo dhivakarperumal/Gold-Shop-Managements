@@ -8,6 +8,10 @@ export function Dealers() {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
   const loadData = async () => {
     const data = await db.get('dealers');
     setDealers(data);
@@ -43,6 +47,9 @@ export function Dealers() {
     d.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     d.shopName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedDealers = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="space-y-6">
@@ -110,7 +117,7 @@ export function Dealers() {
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((d) => (
+                  paginatedDealers.map((d) => (
                     <tr key={d.id} className="hover:bg-gray-50/80 transition-colors group">
                       <td className="px-6 py-4">
                         <div className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{d.name}</div>
@@ -139,7 +146,7 @@ export function Dealers() {
                   <p className="text-lg font-black uppercase tracking-widest text-[10px]">No Registered Dealers found</p>
                </div>
             ) : (
-              filtered.map((d) => (
+              paginatedDealers.map((d) => (
                 <div key={d.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group overflow-hidden flex flex-col">
                   <div className="p-5 border-b border-gray-50 bg-gray-50/30 flex items-center justify-between">
                     <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500 shadow-inner">
@@ -173,6 +180,42 @@ export function Dealers() {
                 </div>
               ))
             )}
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {filtered.length > itemsPerPage && (
+          <div className="p-6 border-t border-gray-100 bg-gray-50/30 flex flex-col sm:flex-row justify-between items-center gap-4">
+             <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                Showing {Math.min(filtered.length, (currentPage - 1) * itemsPerPage + 1)}-{Math.min(filtered.length, currentPage * itemsPerPage)} of {filtered.length} dealers
+             </div>
+             <div className="flex items-center gap-2">
+                <button 
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => prev - 1)}
+                  className="px-4 py-2 border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white disabled:opacity-30 disabled:pointer-events-none transition-all"
+                >
+                  Prev
+                </button>
+                <div className="flex items-center gap-1">
+                   {[...Array(totalPages)].map((_, i) => (
+                     <button
+                        key={i}
+                        onClick={() => setCurrentPage(i + 1)}
+                        className={`w-8 h-8 rounded-lg text-[10px] font-black transition-all ${currentPage === i + 1 ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:bg-white border border-transparent'}`}
+                     >
+                       {i + 1}
+                     </button>
+                   ))}
+                </div>
+                <button 
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => prev + 1)}
+                  className="px-4 py-2 border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white disabled:opacity-30 disabled:pointer-events-none transition-all"
+                >
+                  Next
+                </button>
+             </div>
           </div>
         )}
       </div>

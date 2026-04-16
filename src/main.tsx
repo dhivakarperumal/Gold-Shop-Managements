@@ -15,6 +15,7 @@ import { CustomerProfile } from "./Admin/Customers/CustomerProfile";
 import { Loans } from "./Admin/Loans/Loans";
 import { LoanForm } from "./Admin/Loans/LoanForm";
 import { Payments } from "./Admin/Payments/Payments";
+import { GoldRelease } from "./Admin/Loans/GoldRelease";
 import { Dealers } from "./Admin/Dealers/Dealers";
 import { Reports } from "./Admin/Reports/Reports";
 import { Home } from "./pages/Home";
@@ -48,6 +49,7 @@ const router = createBrowserRouter([
       { path: "customers/edit/:id", element: <CustomerForm /> },
       { path: "loans", element: <Loans /> },
       { path: "loans/new", element: <LoanForm /> },
+      { path: "loans/release/:id", element: <GoldRelease /> },
       { path: "payments", element: <Payments /> },
       { path: "dealers", element: <Dealers /> },
       { path: "reports", element: <Reports /> }

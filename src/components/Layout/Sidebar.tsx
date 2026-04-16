@@ -1,5 +1,5 @@
-import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Coins, Briefcase, BarChart3, X, Wallet } from 'lucide-react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { LayoutDashboard, Users, Coins, Briefcase, BarChart3, X, Wallet, Gem } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 interface SidebarProps {
@@ -9,11 +9,13 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user } = useAuth();
+  const location = useLocation();
 
   const navItems = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard, roles: ['admin', 'user'], end: true },
     { name: 'Customers', path: '/admin/customers', icon: Users, roles: ['admin'], end: true },
     { name: 'Loans', path: '/admin/loans', icon: Coins, roles: ['admin', 'user'], end: true },
+    { name: 'Gold Return', path: '/admin/loans?mode=return', icon: Gem, roles: ['admin', 'user'], end: true },
     { name: 'Payments', path: '/admin/payments', icon: Wallet, roles: ['admin', 'user'], end: true },
     { name: 'Dealers', path: '/admin/dealers', icon: Briefcase, roles: ['admin'], end: true },
     { name: 'Reports', path: '/admin/reports', icon: BarChart3, roles: ['admin'], end: true }
@@ -66,13 +68,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 key={item.name}
                 to={item.path}
                 end={item.end}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={() => {
+                  const isActive = location.pathname + location.search === item.path;
+                  return `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isActive 
                       ? 'bg-[#2b58b4] text-white shadow-sm' 
                       : 'text-blue-100 hover:bg-white/10 hover:text-white'
-                  }`
-                }
+                  }`;
+                }}
               >
                 <item.icon className="w-5 h-5" />
                 {item.name}

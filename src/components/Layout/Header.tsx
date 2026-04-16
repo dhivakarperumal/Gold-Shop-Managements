@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { Menu, Search, Plus, UserPlus, FileText } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 
 interface HeaderProps {
@@ -9,8 +10,19 @@ interface HeaderProps {
 
 export function Header({ onMenuClick }: HeaderProps) {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
+
+  const handleQuickAction = (path: string) => {
+    setIsQuickActionsOpen(false);
+    navigate(path);
+  };
+
+  const handleAddAgent = () => {
+    setIsQuickActionsOpen(false);
+    toast('Agent creation is not yet available.', { icon: '⚠️' });
+  };
 
   return (
     <header className="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-4 lg:px-6 shadow-sm z-10 shrink-0 relative">
@@ -52,15 +64,27 @@ export function Header({ onMenuClick }: HeaderProps) {
                   <span className="text-[13px] font-bold text-gray-900">Quick Actions</span>
                 </div>
                 <div className="py-1">
-                  <button className="w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-50 flex items-center gap-3">
+                  <button
+                    type="button"
+                    className="w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-50 flex items-center gap-3"
+                    onClick={() => handleQuickAction('/admin/customers/new')}
+                  >
                     <UserPlus className="w-4 h-4 text-gray-500" />
                     Add Customer
                   </button>
-                  <button className="w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-50 flex items-center gap-3">
+                  <button
+                    type="button"
+                    className="w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-50 flex items-center gap-3"
+                    onClick={() => handleQuickAction('/admin/loans/new')}
+                  >
                     <FileText className="w-4 h-4 text-gray-500" />
                     Add Loan
                   </button>
-                  <button className="w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-50 flex items-center gap-3">
+                  <button
+                    type="button"
+                    className="w-full text-left px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-50 flex items-center gap-3"
+                    onClick={handleAddAgent}
+                  >
                     <UserPlus className="w-4 h-4 text-gray-500" />
                     Add Agent
                   </button>

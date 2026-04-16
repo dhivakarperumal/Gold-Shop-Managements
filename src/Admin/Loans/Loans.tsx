@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { db } from '../../lib/db';
 import { useData } from '../../context/DataContext';
 import { Search, Plus, Trash2, IndianRupee, Calendar, Gem, Wallet, CheckCircle, Clock, AlertCircle, Receipt, LayoutGrid, List } from 'lucide-react';
@@ -11,10 +11,21 @@ export function Loans() {
   const [selectedLoan, setSelectedLoan] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
+  const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
+  const [searchParams] = useSearchParams();
+  const isReturnMode = searchParams.get('mode') === 'return';
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
   
-  // Payment Form State
   const [paymentAmount, setPaymentAmount] = useState<number>(0);
   const [paymentType, setPaymentType] = useState('Interest');
+
+  // Third Party Payment State
+  const [isThirdParty, setIsThirdParty] = useState(false);
+  const [payerName, setPayerName] = useState('');
+  const [payerRelation, setPayerRelation] = useState('');
 
   const handlePaymentSubmit = async (e: any) => {
     e.preventDefault();
@@ -46,7 +57,10 @@ export function Loans() {
       amount: amountPaid,
       type: paymentType,
       balance: newBalance,
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
+      isThirdParty,
+      payerName: isThirdParty ? payerName : selectedLoan.customerName,
+      payerRelation: isThirdParty ? payerRelation : 'Self'
     };
     await db.add('payments', transaction);
 
@@ -72,6 +86,9 @@ export function Loans() {
     setIsPaymentModalOpen(false);
     setSelectedLoan(null);
     setPaymentAmount(0);
+    setIsThirdParty(false);
+    setPayerName('');
+    setPayerRelation('');
   };
 
   const deleteLoan = async (id: string) => {
@@ -90,26 +107,47 @@ export function Loans() {
     }
   };
 
-  const filtered = loans.filter(l => 
-    l.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    l.customerId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    l.id?.includes(searchTerm)
-  );
+  const filtered = loans.filter(l => {
+    const matchesSearch = l.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      l.customerId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      l.id?.includes(searchTerm);
+    
+    if (isReturnMode) {
+      return matchesSearch && l.status !== 'Closed';
+    }
+    return matchesSearch;
+  });
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedLoans = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-lg font-black text-gray-900 tracking-tight uppercase">Advanced Loan Manager</h1>
-          <p className="text-xs text-gray-500 mt-1 uppercase font-bold tracking-widest">Multi-item pledging & interest tracking.</p>
+          <h1 className="text-lg font-black text-gray-900 tracking-tight uppercase">
+            {isReturnMode ? 'Gold Return & Release' : 'Advanced Loan Manager'}
+          </h1>
+          <p className="text-xs text-gray-500 mt-1 uppercase font-bold tracking-widest">
+            {isReturnMode ? 'Select an active loan to begin the release protocol.' : 'Multi-item pledging & interest tracking.'}
+          </p>
         </div>
-        <button 
-          onClick={() => navigate('/admin/loans/new')}
-          className="bg-[#1b88f3] hover:bg-blue-600 text-white px-6 py-3 rounded-2xl font-black text-[11px] shadow-lg flex items-center gap-2 transition-all uppercase tracking-widest hover:scale-105 active:scale-95"
-        >
-          <Plus className="w-5 h-5" />
-          Create New Pledge
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setIsProcessModalOpen(true)}
+            className="bg-white border-2 border-amber-200 text-amber-700 hover:bg-amber-50 px-4 py-3 rounded-2xl font-black text-[11px] shadow-sm flex items-center gap-2 transition-all uppercase tracking-widest"
+          >
+            <AlertCircle className="w-4 h-4" />
+            Process Guide
+          </button>
+          <button 
+            onClick={() => navigate('/admin/loans/new')}
+            className="bg-[#1b88f3] hover:bg-blue-600 text-white px-6 py-3 rounded-2xl font-black text-[11px] shadow-lg flex items-center gap-2 transition-all uppercase tracking-widest hover:scale-105 active:scale-95"
+          >
+            <Plus className="w-5 h-5" />
+            Create New Pledge
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
@@ -148,6 +186,7 @@ export function Loans() {
             <table className="w-full text-left text-sm">
               <thead className="bg-gray-50 text-gray-400 font-black border-b border-gray-100 uppercase text-[10px] tracking-[0.15em]">
                 <tr>
+                  <th className="px-6 py-5">S.No</th>
                   <th className="px-6 py-5">Loan Ref / Date</th>
                   <th className="px-6 py-5">Customer Profile</th>
                   <th className="px-6 py-5">Pledged Objects</th>
@@ -164,8 +203,11 @@ export function Loans() {
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((l) => (
+                  paginatedLoans.map((l, index) => (
                     <tr key={l.id} className="hover:bg-gray-50/80 transition-colors group not-italic">
+                      <td className="px-6 py-5 text-[10px] font-black text-gray-400">
+                        {(currentPage - 1) * itemsPerPage + index + 1}
+                      </td>
                       <td className="px-6 py-5">
                         <div className="font-mono text-[10px] font-black text-blue-500 mb-1 leading-none uppercase">#{l.id?.slice(-8).toUpperCase()}</div>
                         <div className="flex items-center gap-2 text-[10px] text-gray-500 font-bold uppercase tracking-tighter">
@@ -214,9 +256,9 @@ export function Loans() {
                         <div className="flex items-center justify-end gap-2">
                           {l.status !== 'Closed' && (
                             <button 
-                              onClick={() => { setSelectedLoan(l); setIsPaymentModalOpen(true); }}
+                              onClick={() => navigate(`/admin/loans/release/${l.id}`)}
                               className="p-2.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-xl transition-all border border-emerald-100 shadow-sm"
-                              title="Record Repayment"
+                              title="Begin Gold Return Process"
                             >
                                <Wallet className="w-4 h-4" />
                             </button>
@@ -240,7 +282,7 @@ export function Loans() {
                   <p className="text-sm font-black uppercase tracking-widest">No active system records detect</p>
                </div>
             ) : (
-              filtered.map((l) => (
+              paginatedLoans.map((l) => (
                 <div key={l.id} className="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all group overflow-hidden flex flex-col">
                   <div className="p-5 border-b border-gray-50 bg-gray-50/50 flex justify-between items-start">
                     <div>
@@ -302,10 +344,10 @@ export function Loans() {
                   <div className="p-5 bg-gray-50/50 border-t border-gray-50 flex gap-3">
                     {l.status !== 'Closed' && (
                       <button 
-                        onClick={() => { setSelectedLoan(l); setIsPaymentModalOpen(true); }}
+                        onClick={() => navigate(`/admin/loans/release/${l.id}`)}
                         className="flex-1 py-3.5 rounded-2xl bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
                       >
-                        <Wallet className="w-4 h-4" /> Collect Redemption
+                        <Wallet className="w-4 h-4" /> Start Return Process
                       </button>
                     )}
                     <button 
@@ -320,88 +362,86 @@ export function Loans() {
             )}
           </div>
         )}
+
+        {/* Pagination Controls */}
+        {filtered.length > itemsPerPage && (
+          <div className="p-6 border-t border-gray-100 bg-gray-50/30 flex flex-col sm:flex-row justify-between items-center gap-4">
+             <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                Showing {Math.min(filtered.length, (currentPage - 1) * itemsPerPage + 1)}-{Math.min(filtered.length, currentPage * itemsPerPage)} of {filtered.length} entries
+             </div>
+             <div className="flex items-center gap-2">
+                <button 
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => prev - 1)}
+                  className="px-4 py-2 border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white disabled:opacity-30 disabled:pointer-events-none transition-all"
+                >
+                  Prev
+                </button>
+                <div className="flex items-center gap-1">
+                   {[...Array(totalPages)].map((_, i) => (
+                     <button
+                        key={i}
+                        onClick={() => setCurrentPage(i + 1)}
+                        className={`w-8 h-8 rounded-lg text-[10px] font-black transition-all ${currentPage === i + 1 ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:bg-white border border-transparent'}`}
+                     >
+                       {i + 1}
+                     </button>
+                   ))}
+                </div>
+                <button 
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => prev + 1)}
+                  className="px-4 py-2 border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white disabled:opacity-30 disabled:pointer-events-none transition-all"
+                >
+                  Next
+                </button>
+             </div>
+          </div>
+        )}
       </div>
 
-      {/* Repayment Modal - Advanced Flow */}
-      {isPaymentModalOpen && selectedLoan && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-             <div className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
-                <div>
-                   <h2 className="text-xl font-black text-gray-900 tracking-tighter uppercase">Repayment Entry</h2>
-                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Receipt Ref: #{selectedLoan.id?.slice(-8).toUpperCase()}</p>
+      {/* Repayment Modal Removed - Replaced by GoldRelease Page */}
+
+      {/* Process Guide Modal */}
+      {isProcessModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[40px] shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="p-10 border-b border-gray-50 bg-amber-50/50 flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-black text-amber-900 tracking-tighter uppercase">Gold Return Standard Process</h2>
+                <p className="text-[11px] font-bold text-amber-700/60 uppercase tracking-widest mt-1">Official Step-by-Step Security Protocol</p>
+              </div>
+              <button onClick={() => setIsProcessModalOpen(false)} className="bg-white text-gray-400 hover:text-gray-600 w-10 h-10 rounded-full flex items-center justify-center text-2xl font-light shadow-sm border border-gray-100">&times;</button>
+            </div>
+            
+            <div className="p-10 grid gap-6">
+              {[
+                { step: 1, title: 'Visit the Shop', desc: 'Borrower or authorized representative visits the counter.' },
+                { step: 2, title: 'Verify Loan Details', desc: 'Audit loan receipt, customer profile, and physical gold item.' },
+                { step: 3, title: 'Pay Loan Amount', desc: 'Collection of Principal + Interest + Additional charges.' },
+                { step: 4, title: 'Identity Verification', desc: 'Validate government-issued ID and capture acknowledgment.' },
+                { step: 5, title: 'Gold Release', desc: 'Hand over ornaments and mark the loan as "Closed" in system.' }
+              ].map((item, idx) => (
+                <div key={idx} className="flex gap-6 group">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-100 flex-shrink-0 flex items-center justify-center text-amber-600 font-black text-xl group-hover:scale-110 transition-transform">
+                    {item.step}
+                  </div>
+                  <div>
+                    <h4 className="font-black text-gray-900 uppercase text-sm tracking-tight mb-1">{item.title}</h4>
+                    <p className="text-xs text-gray-500 font-bold leading-relaxed">{item.desc}</p>
+                  </div>
                 </div>
-                <button onClick={() => setIsPaymentModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-2 text-3xl font-light">&times;</button>
-             </div>
-             
-             <form onSubmit={handlePaymentSubmit} className="p-8 space-y-8">
-                <div className="space-y-5">
-                   <div className="flex justify-between p-5 bg-blue-50/50 rounded-3xl border border-blue-100/50">
-                      <div>
-                         <span className="text-[10px] font-black text-blue-400 uppercase block mb-1">Customer Profile</span>
-                         <span className="text-xs font-black text-blue-900 uppercase">{selectedLoan.customerName}</span>
-                      </div>
-                      <div className="text-right">
-                         <span className="text-[10px] font-black text-blue-400 uppercase block mb-1">Open Balance</span>
-                         <span className="text-xs font-black text-blue-900">₹{(selectedLoan.balanceAmount || selectedLoan.loanAmount).toLocaleString()}</span>
-                      </div>
-                   </div>
+              ))}
+            </div>
 
-                   <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100 mb-2">
-                       <div className="flex items-center gap-2 text-amber-700 mb-1">
-                          <Clock className="w-3 h-3" />
-                          <span className="text-[9px] font-black uppercase tracking-widest">Model: {selectedLoan.interestType || 'Simple'}</span>
-                       </div>
-                       <p className="text-[10px] font-bold text-amber-900/60 uppercase">Applied Rate: {selectedLoan.interestRate}% Monthly</p>
-                   </div>
-
-                   <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase mb-3 px-1 tracking-widest">Choose Redemption Type</label>
-                      <div className="grid grid-cols-2 gap-3">
-                         {['Interest Only', 'Partial Payment', 'Full Settlement'].map(type => (
-                           <button 
-                            key={type}
-                            type="button"
-                            onClick={() => {
-                              const base = type.split(' ')[0];
-                              setPaymentType(base);
-                              if (type === 'Full Settlement') {
-                                setPaymentAmount(selectedLoan.balanceAmount || selectedLoan.loanAmount);
-                              }
-                            }}
-                            className={`py-4 rounded-2xl text-[10px] font-black uppercase transition-all border-2 ${
-                              (type.startsWith(paymentType) && paymentType !== '') ? 'bg-blue-600 text-white border-blue-600 shadow-xl scale-105' : 'bg-gray-50/50 text-gray-500 border-gray-100 hover:border-blue-200'
-                            }`}
-                           >
-                               {type}
-                           </button>
-                         ))}
-                      </div>
-                   </div>
-
-                   <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase mb-3 px-1 tracking-widest">Collection Amount (₹)</label>
-                      <div className="relative">
-                        <IndianRupee className="w-5 h-5 absolute left-5 top-1/2 -translate-y-1/2 text-emerald-500" />
-                        <input 
-                          required 
-                          type="number" 
-                          value={paymentAmount}
-                          onChange={(e) => setPaymentAmount(Number(e.target.value))}
-                          disabled={paymentType === 'Full'}
-                          className="w-full pl-14 pr-4 py-5 border-2 border-gray-100 rounded-3xl focus:border-emerald-500 outline-none text-2xl font-black text-gray-900 shadow-inner bg-gray-50/50 transition-all font-mono"
-                        />
-                      </div>
-                   </div>
-                </div>
-
-                <div className="pt-8 border-t border-gray-100 flex gap-4">
-                   <button type="button" onClick={() => setIsPaymentModalOpen(false)} className="flex-1 py-4 text-[10px] font-black text-gray-400 uppercase hover:bg-gray-50 rounded-2xl transition-all tracking-widest">Discard</button>
-                   <button type="submit" className="flex-[2] py-4 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-[0_12px_24px_rgba(5,150,105,0.3)] hover:bg-emerald-700 transition-all flex items-center justify-center gap-2">
-                     <CheckCircle className="w-4 h-4" /> Finalize Receipt
-                   </button>
-                </div>
-             </form>
+            <div className="p-8 bg-gray-50 border-t border-gray-100 flex justify-center">
+               <button 
+                onClick={() => setIsProcessModalOpen(false)}
+                className="px-12 py-4 bg-gray-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl hover:bg-black transition-all"
+               >
+                 I Understand the Protocol
+               </button>
+            </div>
           </div>
         </div>
       )}
