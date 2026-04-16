@@ -17,6 +17,7 @@ export function Loans() {
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
+  const [statusTab, setStatusTab] = useState<'Active' | 'Closed'>('Active');
   const itemsPerPage = 8;
   
   const [paymentAmount, setPaymentAmount] = useState<number>(0);
@@ -115,7 +116,13 @@ export function Loans() {
     if (isReturnMode) {
       return matchesSearch && l.status !== 'Closed';
     }
-    return matchesSearch;
+    
+    // Status Tab Filter
+    if (statusTab === 'Active') {
+      return matchesSearch && (l.status === 'Active' || l.status === 'Overdue');
+    } else {
+      return matchesSearch && l.status === 'Closed';
+    }
   });
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -181,6 +188,37 @@ export function Loans() {
           </div>
         </div>
 
+        {/* Status Tabs Filter */}
+        {!isReturnMode && (
+          <div className="px-5 pb-5 flex gap-1 bg-gray-50/10">
+             {[
+               { id: 'Active', label: 'Active Dossiers', icon: Clock },
+               { id: 'Closed', label: 'Settled / Closed', icon: CheckCircle }
+             ].map((tab) => (
+               <button
+                 key={tab.id}
+                 onClick={() => {
+                   setStatusTab(tab.id as any);
+                   setCurrentPage(1);
+                 }}
+                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                   statusTab === tab.id 
+                     ? 'bg-blue-600 text-white shadow-lg shadow-blue-100 scale-105 z-10' 
+                     : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
+                 }`}
+               >
+                 <tab.icon className="w-4 h-4" />
+                 {tab.label}
+                 <span className={`ml-2 px-1.5 py-0.5 rounded-md text-[8px] ${
+                   statusTab === tab.id ? 'bg-white/20' : 'bg-gray-100'
+                 }`}>
+                   {loans.filter(l => tab.id === 'Active' ? l.status !== 'Closed' : l.status === 'Closed').length}
+                 </span>
+               </button>
+             ))}
+          </div>
+        )}
+
         {viewMode === 'table' ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
@@ -198,7 +236,7 @@ export function Loans() {
               <tbody className="divide-y divide-gray-100 italic font-medium">
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-20 text-center text-gray-400 font-black uppercase tracking-widest text-[11px]">
+                    <td colSpan={7} className="px-6 py-20 text-center text-gray-400 font-black uppercase tracking-widest text-[11px]">
                       No active loan records detected in system.
                     </td>
                   </tr>

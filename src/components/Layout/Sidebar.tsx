@@ -38,7 +38,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar Content */}
       <aside className={`
         fixed lg:static inset-y-0 left-0 z-50
-        w-64 bg-[#1c4587] flex flex-col
+        w-72 bg-[#1c4587] flex flex-col
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>

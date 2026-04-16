@@ -103,6 +103,7 @@ export function Dealers() {
             <table className="w-full text-left text-sm">
               <thead className="bg-gray-50 text-gray-600 font-semibold border-b border-gray-200 uppercase text-[11px] tracking-wider">
                 <tr>
+                  <th className="px-6 py-4 w-12">S.No</th>
                   <th className="px-6 py-4">Dealer/Shop</th>
                   <th className="px-6 py-4">Contact</th>
                   <th className="px-6 py-4">Address</th>
@@ -112,13 +113,16 @@ export function Dealers() {
               <tbody className="divide-y divide-gray-100">
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center text-gray-400 uppercase font-black text-[10px] tracking-widest">
+                    <td colSpan={5} className="px-6 py-12 text-center text-gray-400 uppercase font-black text-[10px] tracking-widest">
                       No dealers found. Click 'Add Dealer' to create one.
                     </td>
                   </tr>
                 ) : (
-                  paginatedDealers.map((d) => (
+                  paginatedDealers.map((d, index) => (
                     <tr key={d.id} className="hover:bg-gray-50/80 transition-colors group">
+                      <td className="px-6 py-4 text-[10px] font-black text-gray-400">
+                         {(currentPage - 1) * itemsPerPage + index + 1}
+                      </td>
                       <td className="px-6 py-4">
                         <div className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{d.name}</div>
                         <div className="text-[11px] text-blue-500 font-black uppercase tracking-tighter">{d.shopName}</div>

@@ -82,6 +82,7 @@ export function Customers() {
             <table className="w-full text-left text-sm">
               <thead className="bg-gray-50 text-gray-400 font-black border-b border-gray-100 uppercase text-[10px] tracking-[0.15em]">
                 <tr>
+                  <th className="px-6 py-5 w-12">S.No</th>
                   <th className="px-6 py-5">Client Profile</th>
                   <th className="px-6 py-5">Contact Details</th>
                   <th className="px-6 py-5">Identity Status</th>
@@ -92,13 +93,16 @@ export function Customers() {
               <tbody className="divide-y divide-gray-100 italic font-medium">
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-20 text-center text-gray-400 font-black uppercase tracking-widest text-[11px]">
+                    <td colSpan={6} className="px-6 py-20 text-center text-gray-400 font-black uppercase tracking-widest text-[11px]">
                       No matched client records found.
                     </td>
                   </tr>
                 ) : (
-                  paginatedCustomers.map((c) => (
-                    <tr key={c.id} className="hover:bg-gray-50/80 transition-colors group not-italic">
+                  paginatedCustomers.map((c, index) => (
+                    <tr key={c.id} className="hover:bg-gray-50/80 transition-all group not-italic">
+                      <td className="px-6 py-4 text-[10px] font-black text-gray-400">
+                         {(currentPage - 1) * itemsPerPage + index + 1}
+                      </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           {c.customerPhoto || c.photo ? (
